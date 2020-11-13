@@ -1,0 +1,6 @@
+* Xmonad-Config
+This is my current xmonad config.
+
+Currently it is a mess and mostly copied from other configuration
+files I found online. However, that is rapidly changing and hopefully
+in time the configuration will be of decent engineering quality.

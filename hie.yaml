@@ -1,0 +1,6 @@
+cradle:
+  stack:
+    - path: ./src
+      component: "config:lib"
+    - path: ./app
+      component: "config:exe:config"

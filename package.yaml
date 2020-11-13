@@ -1,0 +1,27 @@
+name: config
+
+dependencies:
+  - X11
+  - base
+  - xmonad
+  - xmonad-contrib
+  - text
+  - containers
+  - unix
+
+library:
+  source-dirs: src
+
+executables:
+  config:
+    source-dirs: app
+    main: xmonad.hs
+    ghc-options:
+      - -Wall
+      - -fwarn-tabs
+      - -threaded
+      - -O2
+      - -with-rtsopts=-N4
+      - -fwarn-incomplete-patterns
+    dependencies:
+    - config

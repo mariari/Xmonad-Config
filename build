@@ -1,0 +1,9 @@
+# ~/.xmonad/build
+#!/bin/sh
+
+stack build
+echo "$1"
+cp "$(stack path --local-install-root)/bin/config" "$1"
+
+install $1 ~/.local/bin/xmonad
+exec install xmonad-x86_64-linux ~/bin/xmonad

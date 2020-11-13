@@ -1,0 +1,487 @@
+{-# LANGUAGE AllowAmbiguousTypes, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
+
+-- import Data.Monoid
+import Data.List
+import Data.Monoid
+import System.Exit
+
+import System.IO                            -- for xmonbar
+import Control.Applicative ((<|>))
+
+import XMonad --hiding ((|||))
+import XMonad.Actions.GridSelect
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
+import XMonad.Layout.FixedColumn
+import XMonad.Layout.Grid
+import XMonad.Layout.IM
+import XMonad.Layout.NoBorders
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Reflect
+import XMonad.Layout.SimpleFloat
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ToggleLayouts
+import XMonad.Layout.Accordion
+import XMonad.Util.SpawnOnce
+import qualified XMonad.StackSet as W
+import XMonad.Util.Run
+import XMonad.Util.EZConfig
+import XMonad.Layout.Fullscreen
+
+import XMonad.Prompt.Man
+import XMonad.Layout.Renamed
+
+import XMonad.Layout.Decoration
+import XMonad.Layout.ResizableTile
+import XMonad.Actions.Navigation2D
+--import XMonad.Util.Replace
+
+
+import XMonad.Actions.CopyWindow            -- like cylons, except x windows
+import XMonad.Actions.MessageFeedback       -- pseudo conditional key bindings
+--import XMonad.Actions.Volume
+
+import XMonad.Hooks.UrgencyHook
+
+--import XMonad.Layout hiding ( (|||) )       -- ||| from X.L.LayoutCombinators
+import XMonad.Layout.BinarySpacePartition
+import XMonad.Layout.Gaps
+import XMonad.Layout.Hidden
+--import XMonad.Layout.LayoutCombinators
+import XMonad.Layout.MultiToggle
+import XMonad.Layout.NoFrillsDecoration
+import XMonad.Layout.PerScreen              -- Check screen width & adjust layouts
+import XMonad.Layout.ShowWName
+import XMonad.Layout.Simplest
+import XMonad.Layout.Spacing                -- this makes smart space around windows
+import XMonad.Layout.SubLayouts             -- Layouts inside windows. Excellent.
+import XMonad.Layout.ThreeColumns
+import XMonad.Layout.WindowNavigation
+
+import XMonad.Util.NamedWindows
+
+
+data XCond = WS | LD
+
+-- | Choose an action based on the current workspace id (WS) or
+-- layout description (LD).
+chooseAction :: XCond -> (String -> X ()) -> X ()
+chooseAction WS f = withWindowSet (f . W.currentTag)
+chooseAction LD f = withWindowSet (f . description . W.layout . W.workspace . W.current)
+
+
+-- | If current workspace or layout string is listed, run the associated
+-- action (only the first match counts!) If it isn't listed, then run the default
+-- action (marked with empty string, \"\"), or do nothing if default isn't supplied.
+bindOn :: XCond -> [(String, X ())] -> X ()
+bindOn xc bindings = chooseAction xc $ chooser
+  where
+    chooser xc =
+      maybe (return ())
+            snd
+            (find ((xc ==) . fst) bindings <|> find (("" ==) . fst) bindings)
+
+toggleCopyToAll = wsContainingCopies >>= f
+  where
+    f []    = windows copyToAll
+    f (_:_) = killAllOtherCopies
+
+ws :: [String]
+ws = ["1:一", "2:二", "3:三",
+      "4:四", "5:五", "6:六",
+      "7:七", "8:八", "9:九",
+      "10:十", "11:十一", "12:十二",
+      "13:十三","14:十四", "15:十五"]
+
+wsExtra = [("10:十",   "0"), ("11:十一", "p"), ("12:十二", "o")
+          ,("13:十三", "i"), ("14:十四", "u")]
+
+w1 = ws !! 0
+w2 = ws !! 1
+w3 = ws !! 2
+w4 = ws !! 3
+w5 = ws !! 4
+w6 = ws !! 5
+w7 = ws !! 6
+w8 = ws !! 7
+w9 = ws !! 8
+
+wext = fst . (wsExtra !!)
+
+w10 = wext 0
+w11 = wext 1
+w12 = wext 2
+w13 = wext 3
+w14 = wext 4
+
+myWorkspaces = ws
+
+modm = mod4Mask
+
+themeBackground = "#3c3b37"
+themeHighlight  = "#f07746"
+
+
+myFocusFollowsMouse  = False
+myClickJustFocuses   = True
+
+base03  = "#002b36"
+base02  = "#073642"
+base01  = "#586e75"
+base00  = "#657b83"
+base0   = "#839496"
+base1   = "#93a1a1"
+base2   = "#eee8d5"
+base3   = "#fdf6e3"
+yellow  = "#b58900"
+orange  = "#cb4b16"
+red     = "#dc322f"
+magenta = "#d33682"
+violet  = "#6c71c4"
+blue    = "#268bd2"
+cyan    = "#2aa198"
+pink    = "#d96476"
+green   = "#859900"
+
+-- sizes
+gap         = 5
+topbar      = 5
+border      = 0
+prompt      = 10
+status      = 20
+
+myNormalBorderColor     = "#000000"
+myFocusedBorderColor    = active
+
+active      = blue
+activeWarn  = red
+inactive    = base02
+focusColor  = blue
+unfocusColor = base02
+
+myFont      = "-*-terminus-medium-*-*-*-*-160-*-*-*-*-*-*"
+myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
+myWideFont  = "xft:Eurostar Black Extended:"
+            ++ "style=Regular:pixelsize=180:hinting=true"
+
+myTabTheme = def
+    { fontName              = myFont
+    , activeColor           = active
+    , inactiveColor         = base02
+    , activeBorderColor     = active
+    , inactiveBorderColor   = base02
+    , activeTextColor       = base03
+    , inactiveTextColor     = base00
+    }
+
+topBarTheme = def
+    { fontName              = myFont
+    , inactiveBorderColor   = blue
+    , inactiveColor         = base03
+    , inactiveTextColor     = base03
+    , activeBorderColor     = active
+    , activeColor           = active
+    , activeTextColor       = active
+    , urgentBorderColor     = red
+    , urgentTextColor       = yellow
+    , decoHeight            = topbar
+    }
+
+myShowWNameTheme = def
+    { swn_font              = myWideFont
+    , swn_fade              = 0.5
+    , swn_bgcolor           = "#000000"
+    , swn_color             = "#FFFFFF"
+    }
+
+data FULLBAR = FULLBAR deriving (Read, Show, Eq, Typeable)
+
+instance Transformer FULLBAR Window where
+    transform FULLBAR x k = k barFull (\_ -> x)
+
+barFull :: ModifiedLayout AvoidStruts Simplest a
+barFull = avoidStruts Simplest
+
+-- Rules which are applied to each new window.  The (optional) part before
+-- '-->' is a matching rule.  The rest is an action to perform.
+myManageHook :: Query (Endo WindowSet)
+myManageHook = composeAll
+  [ resource =? "Do"       --> doIgnore     -- Leave Gnome Do alone.
+  , resource =? "Pidgin"   --> doShift w3   -- Force to IM workspace.
+  , resource =? "skype"    --> doShift w7   -- Force to Skype workspace.
+  , resource =? "gimp-2.6" --> doShift w8   -- Special-case the GIMP.
+  , resource =? "tilda"    --> doFloat
+  , resource =? "guake"    --> doFloat
+  , manageDocks                             -- For xmobar
+  ]
+
+-- A standard tiled layout, with a master pane and a secondary pane off to
+-- the side.  The master pane typically holds one window; the secondary
+-- pane holds the rest.  Copied from standard xmonad.hs template config.
+tiledLayout :: Tall a
+tiledLayout = Tall nmaster delta ratio
+  where
+    nmaster = 1      -- The default number of windows in the master pane.
+    ratio   = 1/2    -- Default proportion of screen occupied by master pane.
+    delta   = 3/100  -- Percent of screen to increment by when resizing panes.
+
+
+-- foo =
+-- Inspired by:
+--   http://kitenet.net/~joey/blog/entry/xmonad_layouts_for_netbooks/
+workspaceLayouts =
+  onWorkspace w2 webLayouts
+  $ onWorkspace w3 chatLayout
+  -- $ onWorkspace w1 skypeLayouts
+  $ onWorkspace w5 twoDLayout
+  $ defaultLayouts
+  where
+    chatLayout     = myGaps Grid ||| defaultLayouts
+    codeLayouts    = fixedLayout ||| tiledLayout ||| Mirror tiledLayout
+    webLayouts     = reflectHoriz flex ||| reflectHoriz tiledLayout  ||| defaultLayouts
+    skypeLayouts   = skypeLayout
+    defaultLayouts = flex               ||| threeCol |||
+                     tiledLayout        ||| tabs     |||
+                     Mirror tiledLayout
+
+    smallMonResWidth    = 1920
+    showWorkspaceName   = showWName' myShowWNameTheme
+
+    named n             = renamed [(XMonad.Layout.Renamed.Replace n)]
+    trimNamed w n       = renamed [(XMonad.Layout.Renamed.CutWordsLeft w),
+                                   (XMonad.Layout.Renamed.PrependWords n)]
+    suffixed n          = renamed [(XMonad.Layout.Renamed.AppendWords n)]
+    trimSuffixed w n    = renamed [(XMonad.Layout.Renamed.CutWordsRight w),
+                                   (XMonad.Layout.Renamed.AppendWords n)]
+
+    addTopBar           = noFrillsDeco shrinkText topBarTheme
+
+    mySpacing           = spacing gap
+    sGap                = quot gap 2
+    myGaps              = gaps [(U, gap),(D, gap),(L, gap),(R, gap)]
+    mySmallGaps         = gaps [(U, sGap),(D, sGap),(L, sGap),(R, sGap)]
+    myBigGaps           = gaps [(U, gap*2),(D, gap*2),(L, gap*2),(R, gap*2)]
+
+    threeCol = named "Unflexed"
+             $ avoidStruts
+             $ addTopBar
+             $ myGaps
+             $ mySpacing
+             $ ThreeColMid 1 (1/10) (1/2)
+
+    tabs = named "Tabs"
+         $ avoidStruts
+         $ addTopBar
+         $ addTabs shrinkText myTabTheme
+         $ Simplest
+
+
+    twoDLayout = trimNamed 10 "test"
+               $ windowNavigation
+               $ subLayout [0,1] (Simplest ||| (mySpacing $ Accordion))
+               -- $ subLayout [0,1] (Simplest ||| Accordion ||| simpleTabbed)
+               $ (Tall 1 (3/100) (1/2))  ||| Full
+    -- from old config
+    flex = trimNamed 5 "Flex"
+              -- don't forget: even though we are using X.A.Navigation2D
+              -- we need windowNavigation for merging to sublayouts
+              $ windowNavigation
+              $ addTabs shrinkText myTabTheme
+              $ subLayout [] (Simplest ||| (mySpacing $ Accordion))
+              $ subLayout [] (Simplest ||| Accordion)
+              $ ifWider smallMonResWidth wideLayouts standardLayouts
+              where
+                  wideLayouts = myGaps $ mySpacing
+                      $ (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP)
+                    ||| (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
+                  --  ||| fullTabs
+                  standardLayouts = myGaps $ mySpacing
+                      $ (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP)
+                    ||| (suffixed "Std 2/3" $ ResizableTall 1 (1/20) (2/3) [])
+                    ||| (suffixed "Std 1/2" $ ResizableTall 1 (1/20) (1/2) [])
+--                     floatLayout ||| simpleTabbed
+
+    -- An 80-column fixed layout for Emacs and terminals.  The master
+    -- pane will resize so that the contained window is 80 columns wide.
+    fixedLayout = FixedColumn 1 20 80 10
+
+    -- A layout for instant messaging.  Devote 1/6th of the screen to
+    -- the Buddy List, and arrange other windows in a grid.
+    imLayout = myGaps $ withIM (1/6) (Or (Title "Liste de contacts")
+                                         (Title "Buddy List")) Grid
+
+    -- Another IM layout, for use with Skype.
+    skypeLayout = withIM (1/6) skypeMainWindow Grid
+    skypeMainWindow = (And (Resource "skype")
+                           (Not (Or (Title "Transferts de fichiers")
+                                    (Role "ConversationsWindow"))))
+--    floatLayout = windowArrange simpleFloat
+
+-- avoidStruts is what allows xmobar and taffybar to stay on the screen
+
+myLayout = avoidStruts $ smartBorders $ toggleLayouts Full workspaceLayouts
+
+-- "M-" means the xmonad modifier key, and not "Meta".
+myKeys :: [(String, X ())]
+myKeys =
+  [ ("M-g", goToSelected def)   -- Display window selection grid.
+  , ("M-f",   sendMessage ToggleStruts <+> sendMessage ToggleLayout)
+  , ("M-S-f", sendMessage ToggleLayout)
+  , ("M-d", spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
+  , ("M-n", spawn "passmenu -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
+  , ("M-S-q", kill)
+  , ("M-S-z", io (exitWith ExitSuccess))
+  , ("C-S-2", spawn "puush -c")
+  , ("C-S-3", spawn "puush -a")
+  , ("C-S-4", spawn "puush -b")
+  , ("C-S-5", spawn "puush -d")
+  , ("C-S-1", spawn "puush -e")
+  , ("<XF86AudioPlay>", spawn "~/scripts/mpcPausePlay.sh")
+  , ("<XF86AudioStop>", spawn "mpc rand")
+  , ("<XF86AudioNext>", spawn "mpc next")
+  , ("<XF86AudioPrev>", spawn "mpc prev")
+  , ("<XF86TouchPadToggle>"   , spawn "~/shellscript/toggletouchpad.sh")
+  , ("<XF86MonBrightnessUp>"  , spawn "xbacklight -steps 1 -time 0 -inc 5")
+  , ("<XF86MonBrightnessDown>", spawn "xbacklight -steps 1 -time 0 -dec 5")
+
+  , ("<XF86AudioMute>"        , spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
+  , ("<XF86AudioLowerVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '-5%'")
+  , ("<XF86AudioRaiseVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '+5%'")
+--  , ("M-F1", manPrompt def)
+--  , ("M-S-h", sendMessage $ IncLayoutN (-1))
+--  , ("M-S-l", sendMessage $ IncLayoutN 1)
+  , ("M-b", toSubl NextLayout)
+  ] <> myAddWorkspace wsExtra
+    <> myAddWorkspace (zip myWorkspaces (fmap (: []) ['1'..'9']))
+    <> [ (mask <> "M-" <> [key], screenWorkspace scr >>= flip whenJust (windows . action))
+           | (key, scr)  <- zip "wer" [1,0,2] -- was [0..] *** change to match your screen order ***
+           , (action, mask) <- [ (W.view, "") , (W.shift, "S-")]]
+    <> zipM  "M-C-" "Merge w/sublayout" dirKeys dirs (sendMessage . pullGroup)
+    -- <> zipM  "M-C-" "unmege" dirKeys dirs (sendMessage . )
+--  <> zipM' "M-"               "Navigate screen"                           arrowKeys dirs screenGo True
+    <> zipM' "M-"   "Navigate window"              arrowKeys dirs windowGo True
+    <> zipM' "C-S-" "Move window"                  arrowKeys dirs windowSwap True
+    <> [ ("M-;", windows W.swapDown) -- sawp tabs down
+       , ("M-'", windows W.swapUp)   -- swap tabs up
+       ]
+    <> [ ("M-["    , tryMsgR (ExpandTowards L) (Shrink))
+       , ("M-]"    , tryMsgR (ExpandTowards R) (Expand))
+       , ("M-S-["  , tryMsgR (ExpandTowards U) (MirrorShrink))
+       , ("M-S-]"  , tryMsgR (ExpandTowards D) (MirrorExpand))
+       , ("M-C-["  , tryMsgR (ShrinkFrom R) (Shrink))
+       , ("M-C-]"  , tryMsgR (ShrinkFrom L) (Expand))
+       , ("M-C-S-[", tryMsgR (ShrinkFrom D) (MirrorShrink))
+       , ("M-C-S-]", tryMsgR (ShrinkFrom U) (MirrorExpand))
+       ]
+
+dirs = [ D,  U,  L,  R ]
+arrowKeys = ["<D>","<U>","<L>","<R>"]
+dirKeys   = ["j","k","h","l"]
+zipM  m nm ks as f = zipWith (\k d -> (m ++ k, f d)) ks as
+zipM' m nm ks as f b = zipWith (\k d -> (m ++ k, f d b)) ks as
+tryMsgR x y = sequence_ [(tryMessageWithNoRefreshToCurrent x y), refresh]
+
+myKeys' :: [((KeyMask, KeySym), X ())]
+myKeys' = [ ((modm, xK_F1), manPrompt def)
+          , ((modm, xK_b), sendMessage ToggleStruts)
+          , ((modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
+          , ((modm, xK_q)
+            , spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi") -- %! Restart xmonad
+          ]
+
+myAddWorkspace :: [(String, String)] -> [(String, X ())]
+myAddWorkspace ws = fmap (\(w, k) -> ("M-"   <> k, windows (W.view w))) ws
+                 <> fmap (\(w, k) -> ("M-S-" <> k, windows (W.shift w))) ws
+
+
+---------------------------------------------------------------------------
+-- Urgency Hook
+---------------------------------------------------------------------------
+-- from https://pbrisbin.com/posts/using_notify_osd_for_xmonad_notifications/
+data LibNotifyUrgencyHook = LibNotifyUrgencyHook deriving (Read, Show)
+
+instance UrgencyHook LibNotifyUrgencyHook where
+  urgencyHook LibNotifyUrgencyHook w = do
+    name     <- getName w
+    Just idx <- W.findTag w <$> gets windowset
+    safeSpawn "notify-send" [show name, "workspace " ++ idx]
+-- cf https://github.com/pjones/xmonadrc
+
+----------------------------------------------------------------
+-- HOOKS
+----------------------------------------------------------------
+
+-- Print the current xmonad status to a pipe for display by xmobar.
+-- Instead of using the usual xmobarPP configuration, we use defaultPP and
+-- override the colors to match the Ubuntu 10.10 "Clearlooks" theme.
+-- Note that we assume "position = Bottom" appears in your xmobar config,
+-- and that the Gnome bottom panel has been removed.
+--
+myLogHook :: Handle -> X ()
+myLogHook xmobarPipe = dynamicLogWithPP xmobarPrinter
+  where
+    xmobarPrinter = def
+      { ppOutput  = hPutStrLn xmobarPipe
+      , ppCurrent = xmobarColor "black" themeHighlight . wrap "[" "]"
+      , ppTitle   = xmobarColor "pink" "" . shorten 50
+      , ppVisible = wrap "(" ")"
+      , ppUrgent  = xmobarColor "pink" themeHighlight }
+
+
+myHandleEventHook = docksEventHook <+> handleEventHook def
+
+trayer :: String
+trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut true "
+      <> "--expand true --width 12 --transparent true --tint 0x191970 --height 14 --monitor primary"
+
+
+myStartupHook :: X ()
+myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
+  spawnOnce "sh ./screenlayout/main.sh"
+  spawnOnce trayer
+  spawnOnce "sh ~/.fehbg"
+  spawnOnce "urxvtd"
+  spawnOnce "guake"
+  spawnOnce "nm-applet"
+  spawnOnce "fcitx"
+  spawnOnce "mpd"
+  spawnOnce "mate-volume-control-applet"
+  spawnOnce "dunst"
+
+myConfig xmobarPipe =
+  fullscreenSupport
+  $ withUrgencyHook LibNotifyUrgencyHook
+  $ def
+  { workspaces  = myWorkspaces
+  , modMask     = modm
+  , terminal    = "urxvtc"
+  , layoutHook  = myLayout
+  , manageHook  = myManageHook
+  , logHook     = myLogHook xmobarPipe
+  , startupHook = myStartupHook
+  , normalBorderColor  = blue
+  , focusedBorderColor = pink
+  , handleEventHook    = myHandleEventHook
+  } `additionalKeysP` myKeys
+    `additionalKeys`  myKeys'
+
+
+-- main = xmonad $ withNavigation2DConfig def
+--               $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
+--                                     [(mod4Mask,               windowGo  ),
+--                                      (mod4Mask .|. shiftMask, windowSwap)]
+--                                     False
+--               $ additionalNav2DKeys (xK_u, xK_l, xK_d, xK_r)
+--                                     [(mod4Mask,               screenGo  ),
+--                                      (mod4Mask .|. shiftMask, screenSwap)]
+--                                     False
+--               $ def
+
+-- main = do
+--   xmobarPipe <- spawnPipe "xmobar /home/loli/.xmonad/xmobarrc"
+--   xmonad (myConfig xmobarPipe)
+
+main = do
+  xmobarPipe <- spawnPipe "xmobar /home/katyusha/.xmonad/xmobarrc"
+  xmonad $ withNavigation2DConfig def (myConfig xmobarPipe)
+
