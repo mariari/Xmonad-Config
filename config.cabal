@@ -9,10 +9,14 @@ version:        0.0.0
 build-type:     Simple
 
 library
+  exposed-modules:
+      Layouts
+      MiscSettings
   other-modules:
       Paths_config
   hs-source-dirs:
       src
+  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -Wnotype-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info
   build-depends:
       X11
     , base
@@ -29,7 +33,7 @@ executable config
       Paths_config
   hs-source-dirs:
       app
-  ghc-options: -Wall -fwarn-tabs -threaded -O2 -with-rtsopts=-N4 -fwarn-incomplete-patterns
+  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -Wnotype-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wall -fwarn-tabs -threaded -O2 -with-rtsopts=-N4 -fwarn-incomplete-patterns
   build-depends:
       X11
     , base

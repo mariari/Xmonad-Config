@@ -1,5 +1,18 @@
 name: config
 
+ghc-options:
+  - -ferror-spans
+  - -Wall
+  - -fno-warn-orphans
+  - -fno-warn-name-shadowing
+  - -fno-warn-type-defaults
+  - -Wnotype-defaults
+  - -fno-warn-missing-pattern-synonym-signatures
+  - -j
+  - -static
+  - -fwrite-ide-info
+
+
 dependencies:
   - X11
   - base
