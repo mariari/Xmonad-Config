@@ -34,7 +34,7 @@ import XMonad.Layout.SubLayouts             -- Layouts inside windows. Excellent
 import XMonad.Layout.ThreeColumns
 import XMonad.Layout.WindowNavigation
 
-import MiscSettings
+import Configuration
 
 
 -- A standard tiled layout, with a master pane and a secondary pane off to

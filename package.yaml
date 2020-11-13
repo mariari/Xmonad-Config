@@ -13,6 +13,9 @@ ghc-options:
   - -fwrite-ide-info
 
 
+default-extensions:
+  - DisambiguateRecordFields
+
 dependencies:
   - X11
   - base
