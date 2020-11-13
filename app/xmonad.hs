@@ -264,6 +264,6 @@ main = do
         , handleEventHook    = myHandleEventHook
         } `additionalKeysP` myKeys
           `additionalKeys`  myKeys'
-  xmobarPipe <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
+  xmobarPipe <- spawnPipe "xmobar ~/.xmonad/bar/xmobarrc"
   xmonad $ withNavigation2DConfig def (myConfig xmobarPipe)
 

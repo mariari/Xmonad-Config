@@ -12,7 +12,6 @@ library
   exposed-modules:
       Configuration
       Layouts
-      MiscSettings
   other-modules:
       Paths_config
   hs-source-dirs:
