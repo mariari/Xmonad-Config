@@ -10,6 +10,9 @@ import System.IO                            -- for xmonbar
 import Control.Applicative ((<|>))
 
 import XMonad --hiding ((|||))
+import qualified XMonad.Core as Core
+import qualified XMonad.Actions.ShowText as ShowText
+import qualified XMonad.Actions.Warp as Warp
 import XMonad.Actions.GridSelect
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
@@ -121,9 +124,15 @@ myKeys =
 --  , ("M-S-l", sendMessage $ IncLayoutN 1)
   ] <> myAddWorkspace wsExtra
     <> myAddWorkspace (zip myWorkspaces (fmap (: []) ['1'..'9']))
-    <> [ (mask <> "M-" <> [key], screenWorkspace scr >>= flip whenJust (windows . action))
-           | (key, scr)  <- zip "wer" [1,0,2] -- was [0..] *** change to match your screen order ***
-           , (action, mask) <- [ (W.view, "") , (W.shift, "S-")]]
+    <> [ ( "S-" <> "M-" <> [key]
+         , screenWorkspace scr >>= flip whenJust (windows . W.shift)
+         )
+           | (key, scr)  <- zip "wer" [2,0,1]] -- was [0..] *** change to match your screen order ***
+    <> [ ( mask <> "M-" <> [key]
+         , screenWorkspace scr >>= flip whenJust (windows . action) >> warpToMidScren scr
+         )
+           | (key, scr)  <- zip "wer" [2,0,1] -- was [0..] *** change to match your screen order ***
+           , (action, mask) <- [ (W.view, ""), (W.greedyView, "C-")]]
     <> zipM  "M-C-" "Merge w/sublayout" dirKeys dirs (sendMessage . pullGroup)
     -- <> zipM  "M-C-" "unmege" dirKeys dirs (sendMessage . )
 --  <> zipM' "M-"               "Navigate screen"                           arrowKeys dirs screenGo True
@@ -141,6 +150,9 @@ myKeys =
        , ("M-C-S-[", tryMsgR (ShrinkFrom D) (MirrorShrink))
        , ("M-C-S-]", tryMsgR (ShrinkFrom U) (MirrorExpand))
        ]
+
+warpToMidScren :: ScreenId -> X ()
+warpToMidScren x = Warp.warpToScreen x 0.5 0.5
 
 dirs :: [Direction2D]
 dirs = [D, U, L, R]
@@ -166,13 +178,22 @@ myKeys' = [ ((modm, xK_F1), manPrompt def)
           , ((modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
           , ((modm, xK_c), toSubl NextLayout)
           , ((modm, xK_q)
-            , spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi") -- %! Restart xmonad
+            -- %! Restart xmonad
+            , spawn "if type xmonad; then xmonad --recompile && xmonad --restart; \
+                    \ else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
+          , ((modm, xK_a), foo)
           ]
 
 myAddWorkspace :: [(String, String)] -> [(String, X ())]
 myAddWorkspace ws = fmap (\(w, k) -> ("M-"   <> k, windows (W.view w))) ws
                  <> fmap (\(w, k) -> ("M-S-" <> k, windows (W.shift w))) ws
+                 <> fmap (\(w, k) -> ("M-C-" <> k, windows (W.greedyView w))) ws
 
+foo :: X ()
+foo = do
+  state <- get
+  let windowSet = Core.windowset state
+  ShowText.flashText def 10000 (show (W.allWindows windowSet))
 
 ---------------------------------------------------------------------------
 -- Urgency Hook
@@ -218,7 +239,7 @@ trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut 
 
 myStartupHook :: X ()
 myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
-  spawnOnce "sh ./screenlayout/main.sh"
+  spawnOnce "sh ./screenlayout/MainSetup.sh"
   spawnOnce trayer
   spawnOnce "sh ~/.fehbg"
   spawnOnce "urxvtd"

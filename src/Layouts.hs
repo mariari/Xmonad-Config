@@ -46,12 +46,12 @@ tiledLayout = Tall nmaster delta ratio
 -- Inspired by:
 --   http://kitenet.net/~joey/blog/entry/xmonad_layouts_for_netbooks/
 workspaceLayouts = onWorkspace Config.w2 webLayouts
-                 $ onWorkspace Config.w3 chatLayout
                  $ onWorkspace Config.w5 twoDLayout
-              -- $ onWorkspace w1 skypeLayout
+                 $ onWorkspace Config.w6 (tabs ||| defaultLayouts)
+                 -- $ onWorkspace Config.w3 chatLayout
                  $ defaultLayouts
   where
-    chatLayout     = myGaps Grid ||| defaultLayouts
+    _chatLayout    = myGaps Grid ||| defaultLayouts
     _codeLayouts   = fixedLayout ||| tiledLayout ||| Mirror tiledLayout
     webLayouts     = reflectHoriz flex ||| reflectHoriz tiledLayout  ||| defaultLayouts
     defaultLayouts = flex               ||| threeCol |||
@@ -82,7 +82,6 @@ workspaceLayouts = onWorkspace Config.w2 webLayouts
 
     tabs = named "Tabs"
          $ avoidStruts
-         $ addTopBar
          $ addTabs shrinkText Config.myTabTheme
          $ Simplest
 
@@ -102,10 +101,10 @@ workspaceLayouts = onWorkspace Config.w2 webLayouts
               $ subLayout [] (Simplest ||| Accordion)
               $ ifWider smallMonResWidth wideLayouts standardLayouts
               where
-                  wideLayouts = myGaps $ mySpacing
-                      $ (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP)
-                    ||| (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
-                  --  ||| fullTabs
+                  wideLayouts = myGaps
+                              $ mySpacing
+                              $ trimSuffixed 1 "Wide BSP" (hiddenWindows emptyBSP)
+                            ||| suffixed "Wide 3Col" (ThreeColMid 1 (1/20) (1/2))
                   standardLayouts =
                     myGaps
                       $ mySpacing
