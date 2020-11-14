@@ -117,10 +117,8 @@ myKeys =
   , ("<XF86AudioMute>"        , spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
   , ("<XF86AudioLowerVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '-5%'")
   , ("<XF86AudioRaiseVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '+5%'")
---  , ("M-F1", manPrompt def)
 --  , ("M-S-h", sendMessage $ IncLayoutN (-1))
 --  , ("M-S-l", sendMessage $ IncLayoutN 1)
-  , ("M-b", toSubl NextLayout)
   ] <> myAddWorkspace wsExtra
     <> myAddWorkspace (zip myWorkspaces (fmap (: []) ['1'..'9']))
     <> [ (mask <> "M-" <> [key], screenWorkspace scr >>= flip whenJust (windows . action))
@@ -166,6 +164,7 @@ myKeys' :: [((KeyMask, KeySym), X ())]
 myKeys' = [ ((modm, xK_F1), manPrompt def)
           , ((modm, xK_b), sendMessage ToggleStruts)
           , ((modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
+          , ((modm, xK_c), toSubl NextLayout)
           , ((modm, xK_q)
             , spawn "if type xmonad; then xmonad --recompile && xmonad --restart; else xmessage xmonad not in \\$PATH: \"$PATH\"; fi") -- %! Restart xmonad
           ]

@@ -4,7 +4,7 @@ module Layouts where
 
 import XMonad
 import XMonad.Hooks.ManageDocks
-import XMonad.Layout.FixedColumn
+import XMonad.Layout.FixedColumn as FixedCoulmn
 import XMonad.Layout.Grid as Grid
 import XMonad.Layout.IM as IM
 import XMonad.Layout.NoBorders
@@ -48,13 +48,12 @@ tiledLayout = Tall nmaster delta ratio
 workspaceLayouts = onWorkspace Config.w2 webLayouts
                  $ onWorkspace Config.w3 chatLayout
                  $ onWorkspace Config.w5 twoDLayout
-              -- $ onWorkspace w1 skypeLayouts
+              -- $ onWorkspace w1 skypeLayout
                  $ defaultLayouts
   where
     chatLayout     = myGaps Grid ||| defaultLayouts
     _codeLayouts   = fixedLayout ||| tiledLayout ||| Mirror tiledLayout
     webLayouts     = reflectHoriz flex ||| reflectHoriz tiledLayout  ||| defaultLayouts
-    skypeLayouts   = skypeLayout
     defaultLayouts = flex               ||| threeCol |||
                      tiledLayout        ||| tabs     |||
                      Mirror tiledLayout
@@ -91,15 +90,15 @@ workspaceLayouts = onWorkspace Config.w2 webLayouts
     twoDLayout = trimNamed 10 "test"
                $ windowNavigation
                $ subLayout [0,1] (Simplest ||| (mySpacing $ Accordion))
-               -- $ subLayout [0,1] (Simplest ||| Accordion ||| simpleTabbed)
-               $ (Tall 1 (3/100) (1/2))  ||| Full
+               $ subLayout [0,1] (Simplest ||| Accordion ||| simpleTabbed)
+               $ tiledLayout ||| Full
     -- from old config
     flex = trimNamed 5 "Flex"
               -- don't forget: even though we are using X.A.Navigation2D
               -- we need windowNavigation for merging to sublayouts
               $ windowNavigation
               $ addTabs shrinkText Config.myTabTheme
-              $ subLayout [] (Simplest ||| (mySpacing $ Accordion))
+              $ subLayout [] (Simplest ||| mySpacing Accordion)
               $ subLayout [] (Simplest ||| Accordion)
               $ ifWider smallMonResWidth wideLayouts standardLayouts
               where
@@ -107,19 +106,20 @@ workspaceLayouts = onWorkspace Config.w2 webLayouts
                       $ (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP)
                     ||| (suffixed "Wide 3Col" $ ThreeColMid 1 (1/20) (1/2))
                   --  ||| fullTabs
-                  standardLayouts = myGaps $ mySpacing
-                      $ (trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP)
-                    ||| (suffixed "Std 2/3" $ ResizableTall 1 (1/20) (2/3) [])
-                    ||| (suffixed "Std 1/2" $ ResizableTall 1 (1/20) (1/2) [])
+                  standardLayouts =
+                    myGaps
+                      $ mySpacing
+                      $ trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP
+                    ||| suffixed "Std 2/3" (ResizableTall 1 (1/20) (2/3) [])
+                    ||| suffixed "Std 1/2" (ResizableTall 1 (1/20) (1/2) [])
 --                     floatLayout ||| simpleTabbed
 --    floatLayout = windowArrange simpleFloat
 
 
 -- An 80-column fixed layout for Emacs and terminals.  The master
 -- pane will resize so that the contained window is 80 columns wide.
+fixedLayout :: FixedCoulmn.FixedColumn a
 fixedLayout = FixedColumn 1 20 80 10
-
-
 
 -- A layout for instant messaging.  Devote 1/6th of the screen to
  -- the Buddy List, and arrange other windows in a grid.
@@ -127,8 +127,9 @@ imLayout :: LayoutModifier.ModifiedLayout
              Gaps.Gaps
              (LayoutModifier.ModifiedLayout IM.AddRoster Grid.Grid)
              a
-imLayout = myGaps $ withIM (1/6) (Or (Title "Liste de contacts")
-                                     (Title "Buddy List"))
+imLayout = myGaps
+         $ withIM (1/6) (Or (Title "Liste de contacts")
+                            (Title "Buddy List"))
            Grid
 
 -- Another IM layout, for use with Skype.
