@@ -6,11 +6,13 @@ ghc-options:
   - -fno-warn-orphans
   - -fno-warn-name-shadowing
   - -fno-warn-type-defaults
-  - -Wnotype-defaults
+  - -fno-warn-name-shadowing
+  - -Wno-type-defaults
   - -fno-warn-missing-pattern-synonym-signatures
   - -j
   - -static
   - -fwrite-ide-info
+  - -Wno-name-shadowing
 
 
 default-extensions:
@@ -39,5 +41,6 @@ executables:
       - -O2
       - -with-rtsopts=-N4
       - -fwarn-incomplete-patterns
+      - -fno-warn-name-shadowing
     dependencies:
     - config

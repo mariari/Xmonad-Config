@@ -17,7 +17,7 @@ library
   hs-source-dirs:
       src
   default-extensions: DisambiguateRecordFields
-  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -Wnotype-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info
+  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -fno-warn-name-shadowing -Wno-type-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wno-name-shadowing
   build-depends:
       X11
     , base
@@ -35,7 +35,7 @@ executable config
   hs-source-dirs:
       app
   default-extensions: DisambiguateRecordFields
-  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -Wnotype-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wall -fwarn-tabs -threaded -O2 -with-rtsopts=-N4 -fwarn-incomplete-patterns
+  ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -fno-warn-name-shadowing -Wno-type-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wno-name-shadowing -Wall -fwarn-tabs -threaded -O2 -with-rtsopts=-N4 -fwarn-incomplete-patterns -fno-warn-name-shadowing
   build-depends:
       X11
     , base

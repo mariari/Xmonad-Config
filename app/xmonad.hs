@@ -6,9 +6,13 @@ import Data.List
 import Data.Monoid
 import System.Exit
 
+import XMonad.Actions.GroupNavigation
+import qualified XMonad.Layout.BoringWindows as Boring
+import qualified Data.Map as Map
 import System.IO                            -- for xmonbar
 import Control.Applicative ((<|>))
 
+import qualified XMonad.Actions.Submap as Submap
 import XMonad --hiding ((|||))
 import qualified XMonad.Core as Core
 import qualified XMonad.Actions.ShowText as ShowText
@@ -22,6 +26,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.Run
 import XMonad.Util.EZConfig
 import XMonad.Layout.Fullscreen
+import qualified XMonad.Layout.Reflect as Reflect
 
 import XMonad.Prompt.Man
 
@@ -39,7 +44,7 @@ import XMonad.Hooks.UrgencyHook
 --import XMonad.Layout hiding ( (|||) )       -- ||| from X.L.LayoutCombinators
 import XMonad.Layout.BinarySpacePartition
 --import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.MultiToggle
+import XMonad.Layout.MultiToggle as MultiTog
 import XMonad.Layout.Simplest
 import XMonad.Layout.SubLayouts             -- Layouts inside windows. Excellent.
 
@@ -67,6 +72,7 @@ bindOn xc bindings = chooseAction xc $ chooser
             snd
             (find ((xc ==) . fst) bindings <|> find (("" ==) . fst) bindings)
 
+toggleCopyToAll :: X ()
 toggleCopyToAll = wsContainingCopies >>= f
   where
     f []    = windows copyToAll
@@ -103,7 +109,7 @@ myKeys =
   , ("M-d", spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-n", spawn "passmenu -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-S-q", kill)
-  , ("M-S-z", io (exitWith ExitSuccess))
+  , ("M-S-C-;", io (exitWith ExitSuccess)) -- quit xmonad
   , ("C-S-2", spawn "puush -c")
   , ("C-S-3", spawn "puush -a")
   , ("C-S-4", spawn "puush -b")
@@ -150,6 +156,12 @@ myKeys =
        , ("M-C-S-[", tryMsgR (ShrinkFrom D) (MirrorShrink))
        , ("M-C-S-]", tryMsgR (ShrinkFrom U) (MirrorExpand))
        ]
+    <> [ ("M-z M-r", sendMessage Rotate)                             -- rotate
+       , ("M-v"    , sendMessage (MultiTog.Toggle Reflect.REFLECTX)) -- reflection on flex
+       , ("M-S-v"  , sendMessage (MultiTog.Toggle Reflect.REFLECTY)) -- reflect on y
+       ]
+    <> [ 
+       ]
 
 -- This warps to the middle screen, changing the focus, so this is not ideal
 warpToMidScren :: ScreenId -> X ()
@@ -169,7 +181,7 @@ dirKeys :: [String]
 dirKeys   = ["j","k","h","l"]
 
 zipM :: [a] -> p -> [[a]] -> [t] -> (t -> b) -> [([a], b)]
-zipM  m _nm ks as f   = zipWith (\k d -> (m ++ k, f d))   ks as
+zipM  m _nm ks as f = zipWith (\k d -> (m ++ k, f d))   ks as
 
 zipM' :: [a] -> p -> [[a]] -> [t1] -> (t1 -> t2 -> b) -> t2 -> [([a], b)]
 zipM' m _nm ks as f b = zipWith (\k d -> (m ++ k, f d b)) ks as
@@ -186,8 +198,16 @@ myKeys' = [ ((modm, xK_F1), manPrompt def)
             -- %! Restart xmonad
             , spawn "if type xmonad; then xmonad --recompile && xmonad --restart; \
                     \ else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
-          , ((modm, xK_a), foo)
+          , ((modm, xK_s     ), asks config >>= (Submap.submap . defaultSublMap))
+          , ((modm, xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
+          , ((modm, xK_j     ), Boring.focusDown    ) -- %! Swap the focused window with the next window
+          , ((modm, xK_k     ), Boring.focusDown    ) -- %! Swap the focused window with the previous window
+          -- , ((modm, xK_BackSpace), nextMatch History (return True) >> )
           ]
+
+-- updatedSubMap s =
+--   Map.insert (modm, xK_space) (toSubl (W.swapMaster))
+--   (defaultSublMap s)
 
 myAddWorkspace :: [(String, String)] -> [(String, X ())]
 myAddWorkspace ws = fmap (\(w, k) -> ("M-"   <> k, windows (W.view w))) ws
@@ -282,7 +302,7 @@ main = do
         , terminal    = "urxvtc"
         , layoutHook  = myLayout
         , manageHook  = myManageHook
-        , logHook     = myLogHook xmobarPipe
+        , logHook     = myLogHook xmobarPipe >> historyHook
         , startupHook = myStartupHook
         , normalBorderColor  = blue
         , focusedBorderColor = pink

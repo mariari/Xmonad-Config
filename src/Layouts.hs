@@ -1,7 +1,9 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 module Layouts where
 
+import XMonad.Layout.Circle
 import XMonad
 import XMonad.Hooks.ManageDocks
 import XMonad.Layout.FixedColumn as FixedCoulmn
@@ -9,13 +11,15 @@ import XMonad.Layout.Grid as Grid
 import XMonad.Layout.IM as IM
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PerWorkspace
-import XMonad.Layout.Reflect
+import XMonad.Layout.Reflect as Reflect
 import XMonad.Layout.SimpleFloat
 import XMonad.Layout.Tabbed
 import XMonad.Layout.ToggleLayouts
 import XMonad.Layout.Accordion
+import qualified XMonad.Layout.BoringWindows as Boring
 import qualified XMonad.Layout.Renamed as Renamed
 import qualified XMonad.Layout.LayoutModifier as LayoutModifier
+import XMonad.Layout.MultiToggle as MultiTog
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.Gaps as Gaps
@@ -35,29 +39,33 @@ import qualified Configuration as Config
 -- A standard tiled layout, with a master pane and a secondary pane off to
 -- the side.  The master pane typically holds one window; the secondary
 -- pane holds the rest.  Copied from standard xmonad.hs template config.
-tiledLayout :: Tall a
-tiledLayout = Tall nmaster delta ratio
+tiledLayout :: ResizableTall a
+tiledLayout = ResizableTall nmaster delta ratio []
   where
     nmaster = 1      -- The default number of windows in the master pane.
     ratio   = 1/2    -- Default proportion of screen occupied by master pane.
     delta   = 3/100  -- Percent of screen to increment by when resizing panes.
 
 
+-- all our layouts must have lazy
+
 -- Inspired by:
 --   http://kitenet.net/~joey/blog/entry/xmonad_layouts_for_netbooks/
 workspaceLayouts = onWorkspace Config.w2 webLayouts
-                 $ onWorkspace Config.w5 twoDLayout
+                 -- $ onWorkspace Config.w5 twoDLayout
                  $ onWorkspace Config.w6 (tabs ||| defaultLayouts)
+                 $ onWorkspace Config.w10 myLayout
                  -- $ onWorkspace Config.w3 chatLayout
                  $ defaultLayouts
   where
     _chatLayout    = myGaps Grid ||| defaultLayouts
     _codeLayouts   = fixedLayout ||| tiledLayout ||| Mirror tiledLayout
-    webLayouts     = reflectHoriz flex ||| reflectHoriz tiledLayout  ||| defaultLayouts
+    webLayouts     = reflectHoriz flex  ||| defaultLayouts
     defaultLayouts = flex               ||| threeCol |||
-                     tiledLayout        ||| tabs     |||
-                     Mirror tiledLayout
+                     tilePipeLine       ||| tabs     |||
+                     Mirror tilePipeLine
 
+    tilePipeLine        = defaultLayoutPipeline tiledLayout
     smallMonResWidth    = 1920
     _showWorkspaceName  = showWName' Config.myShowWNameTheme
 
@@ -74,46 +82,60 @@ workspaceLayouts = onWorkspace Config.w2 webLayouts
     mySpacing           = uniformSpacing gap
 
     threeCol = named "Unflexed"
-             $ avoidStruts
              $ addTopBar
+             $ Boring.boringAuto
              $ myGaps
              $ mySpacing
              $ ThreeColMid 1 (1/10) (1/2)
 
     tabs = named "Tabs"
-         $ avoidStruts
-         $ addTabs shrinkText Config.myTabTheme
+         $ defaultLayoutTile
+         -- $ avoidStruts
+         -- $ addTabs shrinkText Config.myTabTheme
          $ Simplest
 
 
     twoDLayout = trimNamed 10 "test"
-               $ windowNavigation
+               $ defaultLayoutPipeline
                $ subLayout [0,1] (Simplest ||| (mySpacing $ Accordion))
                $ subLayout [0,1] (Simplest ||| Accordion ||| simpleTabbed)
                $ tiledLayout ||| Full
+    myLayout = windowNavigation
+               $ addTabs shrinkText Config.myTabTheme
+               $ subLayout [0,1,2] (Tall 1 0.2 0.5 ||| Simplest ||| Circle)
+               $ Tall 1 0.2 0.5 ||| Full
     -- from old config
-    flex = trimNamed 5 "Flex"
+    flex = -- trimNamed 5 "Flex"
               -- don't forget: even though we are using X.A.Navigation2D
               -- we need windowNavigation for merging to sublayouts
-              $ windowNavigation
-              $ addTabs shrinkText Config.myTabTheme
+              defaultLayoutPipeline
               $ subLayout [] (Simplest ||| mySpacing Accordion)
-              $ subLayout [] (Simplest ||| Accordion)
               $ ifWider smallMonResWidth wideLayouts standardLayouts
               where
                   wideLayouts = myGaps
                               $ mySpacing
-                              $ trimSuffixed 1 "Wide BSP" (hiddenWindows emptyBSP)
+                              $ tiledLayout
+                              -- $ trimSuffixed 1 "Wide BSP" (hiddenWindows emptyBSP)
                             ||| suffixed "Wide 3Col" (ThreeColMid 1 (1/20) (1/2))
                   standardLayouts =
                     myGaps
                       $ mySpacing
-                      $ trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP
+                      $ tiledLayout
+                      -- $ trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP
                     ||| suffixed "Std 2/3" (ResizableTall 1 (1/20) (2/3) [])
                     ||| suffixed "Std 1/2" (ResizableTall 1 (1/20) (1/2) [])
 --                     floatLayout ||| simpleTabbed
 --    floatLayout = windowArrange simpleFloat
 
+defaultLayoutPipeline x = defaultPred Boring.boringAuto x
+
+defaultLayoutTile x = defaultPred Boring.boringWindows x
+
+defaultPred boringFunc x =
+  windowNavigation
+  $ boringFunc
+  $ addTabs shrinkText Config.myTabTheme
+  $ x
 
 -- An 80-column fixed layout for Emacs and terminals.  The master
 -- pane will resize so that the contained window is 80 columns wide.
@@ -141,7 +163,12 @@ skypeMainWindow = (And (Resource "skype")
                                 (Role "ConversationsWindow"))))
 -- avoidStruts is what allows xmobar and taffybar to stay on the screen
 
-myLayout = avoidStruts $ smartBorders $ toggleLayouts Full workspaceLayouts
+myLayout =
+  avoidStruts
+  $ smartBorders
+  $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTY)
+  $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTX)
+  $ toggleLayouts (Boring.boringWindows Full) workspaceLayouts
 
 ------------------------------------------------------------
 -- Helpers
@@ -168,4 +195,3 @@ myBigGaps =
 uniformSpacing :: Int -> l a -> LayoutModifier.ModifiedLayout Spacing l a
 uniformSpacing i = spacingRaw True (Border 0 0 0 0) False (Border i' i' i' i') True
     where i' = fromIntegral i
-
