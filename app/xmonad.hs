@@ -129,7 +129,7 @@ myKeys =
          )
            | (key, scr)  <- zip "wer" [2,0,1]] -- was [0..] *** change to match your screen order ***
     <> [ ( mask <> "M-" <> [key]
-         , screenWorkspace scr >>= flip whenJust (windows . action) >> warpToMidScren scr
+         , screenWorkspace scr >>= flip whenJust (windows . action) >> warpToMidWindow
          )
            | (key, scr)  <- zip "wer" [2,0,1] -- was [0..] *** change to match your screen order ***
            , (action, mask) <- [ (W.view, ""), (W.greedyView, "C-")]]
@@ -151,8 +151,13 @@ myKeys =
        , ("M-C-S-]", tryMsgR (ShrinkFrom U) (MirrorExpand))
        ]
 
+-- This warps to the middle screen, changing the focus, so this is not ideal
 warpToMidScren :: ScreenId -> X ()
 warpToMidScren x = Warp.warpToScreen x 0.5 0.5
+
+-- this on the other hand is ideal given we move to the proper window first
+warpToMidWindow :: X ()
+warpToMidWindow = Warp.warpToWindow 0.5 0.5
 
 dirs :: [Direction2D]
 dirs = [D, U, L, R]
