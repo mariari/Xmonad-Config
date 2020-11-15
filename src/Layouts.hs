@@ -38,7 +38,7 @@ import XMonad
 -- Main Layout for configuration
 --------------------------------------------------------------------------------
 
-myLayout
+hook
   = ManageDocks.avoidStruts
   $ NoBorders.smartBorders
   $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTY)

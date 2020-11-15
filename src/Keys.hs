@@ -66,6 +66,7 @@ maskMap
     , ((Config.modm, xK_Return), windows W.swapMaster)
     , ((Config.modm, xK_BackSpace), GroupNav.nextMatch GroupNav.History (return True))
     ] <> mergingSubLayouts
+      <> focusMaskMap
 
 --------------------------------------------------------------------------------
 -- Named Key bindings

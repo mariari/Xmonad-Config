@@ -4,31 +4,28 @@ module Main where
 
 import Data.List
 import Data.Monoid
-
-import XMonad.Actions.GroupNavigation
-import System.IO                            -- for xmonbar
 import Control.Applicative ((<|>))
+
+import qualified XMonad.Core                    as Core
+import qualified XMonad.Actions.ShowText        as ShowText
+
+import qualified XMonad.StackSet                as W
+import qualified XMonad.Actions.GroupNavigation as GroupNav
+import qualified XMonad.Util.Run                as Run
+import qualified XMonad.Actions.Navigation2D    as Nav2D
+import qualified System.IO                      as IO
+import qualified XMonad.Hooks.DynamicLog        as DL
+import qualified XMonad.Hooks.ManageDocks       as ManageDocks
+import qualified XMonad.Util.SpawnOnce          as Once
+import qualified XMonad.Util.EZConfig           as EZ
+import qualified XMonad.Layout.Fullscreen       as Full
+import qualified XMonad.Actions.CopyWindow      as CopyWindow -- like cylons, except x windows
+import qualified XMonad.Hooks.UrgencyHook       as Urgency
 import XMonad --hiding ((|||))
-import qualified XMonad.Core as Core
-import qualified XMonad.Actions.ShowText as ShowText
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.ManageDocks
-import XMonad.Util.SpawnOnce
-import qualified XMonad.StackSet as W
-import XMonad.Util.Run
-import XMonad.Util.EZConfig
-import XMonad.Layout.Fullscreen
-import XMonad.Actions.Navigation2D
---import XMonad.Util.Replace
 
-import XMonad.Actions.CopyWindow            -- like cylons, except x windows
---import XMonad.Actions.Volume
-
-import XMonad.Hooks.UrgencyHook
-
-import XMonad.Util.NamedWindows
-import Layouts
-import Configuration
+import qualified UrgencyHook
+import qualified Layouts
+import qualified Configuration as Config
 import qualified Keys
 
 data XCond = WS | LD
@@ -38,7 +35,6 @@ data XCond = WS | LD
 chooseAction :: XCond -> (String -> X ()) -> X ()
 chooseAction WS f = withWindowSet (f . W.currentTag)
 chooseAction LD f = withWindowSet (f . description . W.layout . W.workspace . W.current)
-
 
 -- | If current workspace or layout string is listed, run the associated
 -- action (only the first match counts!) If it isn't listed, then run the default
@@ -52,22 +48,22 @@ bindOn xc bindings = chooseAction xc $ chooser
             (find ((xc ==) . fst) bindings <|> find (("" ==) . fst) bindings)
 
 toggleCopyToAll :: X ()
-toggleCopyToAll = wsContainingCopies >>= f
+toggleCopyToAll = CopyWindow.wsContainingCopies >>= f
   where
-    f []    = windows copyToAll
-    f (_:_) = killAllOtherCopies
+    f []    = windows CopyWindow.copyToAll
+    f (_:_) = CopyWindow.killAllOtherCopies
 
 -- Rules which are applied to each new window.  The (optional) part before
 -- '-->' is a matching rule.  The rest is an action to perform.
 myManageHook :: Query (Endo WindowSet)
 myManageHook = composeAll
-  [ resource =? "Do"       --> doIgnore     -- Leave Gnome Do alone.
-  , resource =? "Pidgin"   --> doShift w3   -- Force to IM workspace.
-  , resource =? "skype"    --> doShift w7   -- Force to Skype workspace.
-  , resource =? "gimp-2.6" --> doShift w8   -- Special-case the GIMP.
+  [ resource =? "Do"       --> doIgnore          -- Leave Gnome Do alone.
+  , resource =? "Pidgin"   --> doShift Config.w3 -- Force to IM workspace.
+  , resource =? "skype"    --> doShift Config.w7 -- Force to Skype workspace.
+  , resource =? "gimp-2.6" --> doShift Config.w8 -- Special-case the GIMP.
   , resource =? "tilda"    --> doFloat
   , resource =? "guake"    --> doFloat
-  , manageDocks                             -- For xmobar
+  , ManageDocks.manageDocks                       -- For xmobar
   ]
 
 
@@ -77,19 +73,6 @@ foo = do
   let windowSet = Core.windowset state
   ShowText.flashText def 10000 (show (W.allWindows windowSet))
 
----------------------------------------------------------------------------
--- Urgency Hook
----------------------------------------------------------------------------
--- from https://pbrisbin.com/posts/using_notify_osd_for_xmonad_notifications/
-data LibNotifyUrgencyHook = LibNotifyUrgencyHook deriving (Read, Show)
-
-instance UrgencyHook LibNotifyUrgencyHook where
-  urgencyHook LibNotifyUrgencyHook w = do
-    name     <- getName w
-    Just idx <- W.findTag w <$> gets windowset
-    safeSpawn "notify-send" [show name, "workspace " <> idx]
-
--- cf https://github.com/pjones/xmonadrc
 
 ----------------------------------------------------------------
 -- HOOKS
@@ -101,19 +84,19 @@ instance UrgencyHook LibNotifyUrgencyHook where
 -- Note that we assume "position = Bottom" appears in your xmobar config,
 -- and that the Gnome bottom panel has been removed.
 --
-myLogHook :: Handle -> X ()
-myLogHook xmobarPipe = dynamicLogWithPP xmobarPrinter
+myLogHook :: IO.Handle -> X ()
+myLogHook xmobarPipe = DL.dynamicLogWithPP xmobarPrinter
   where
     xmobarPrinter = def
-      { ppOutput  = hPutStrLn xmobarPipe
-      , ppCurrent = xmobarColor "black" themeHighlight . wrap "[" "]"
-      , ppTitle   = xmobarColor "pink" "" . shorten 50
-      , ppVisible = wrap "(" ")"
-      , ppUrgent  = xmobarColor "pink" themeHighlight }
+      { DL.ppOutput  = IO.hPutStrLn xmobarPipe
+      , DL.ppCurrent = DL.xmobarColor "black" Config.themeHighlight . DL.wrap "[" "]"
+      , DL.ppTitle   = DL.xmobarColor "pink" "" . DL.shorten 50
+      , DL.ppVisible = DL.wrap "(" ")"
+      , DL.ppUrgent  = DL.xmobarColor "pink" Config.themeHighlight }
 
 
 myHandleEventHook :: Event -> X All
-myHandleEventHook = docksEventHook <> handleEventHook def
+myHandleEventHook = ManageDocks.docksEventHook <> handleEventHook def
 
 trayer :: String
 trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut true \
@@ -122,35 +105,35 @@ trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut 
 
 myStartupHook :: X ()
 myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
-  spawnOnce "sh ./screenlayout/MainSetup.sh"
-  spawnOnce trayer
-  spawnOnce "sh ~/.fehbg"
-  spawnOnce "urxvtd"
-  spawnOnce "guake"
-  spawnOnce "nm-applet"
-  spawnOnce "fcitx"
-  spawnOnce "mpd"
-  spawnOnce "mate-volume-control-applet"
-  spawnOnce "dunst"
+  Once.spawnOnce "sh ./screenlayout/MainSetup.sh"
+  Once.spawnOnce trayer
+  Once.spawnOnce "sh ~/.fehbg"
+  Once.spawnOnce "urxvtd"
+  Once.spawnOnce "guake"
+  Once.spawnOnce "nm-applet"
+  Once.spawnOnce "fcitx"
+  Once.spawnOnce "mpd"
+  Once.spawnOnce "mate-volume-control-applet"
+  Once.spawnOnce "dunst"
 
 main :: IO ()
 main = do
   -- moved here due to big signature that was generated by the result
   let myConfig xmobarPipe =
-        fullscreenSupport
-        $ withUrgencyHook LibNotifyUrgencyHook
+        Full.fullscreenSupport
+        $ Urgency.withUrgencyHook UrgencyHook.LibNotify
         $ def
-        { workspaces  = myWorkspaces
-        , modMask     = modm
+        { workspaces  = Config.myWorkspaces
+        , modMask     = Config.modm
         , terminal    = "urxvtc"
-        , layoutHook  = myLayout
+        , layoutHook  = Layouts.hook
         , manageHook  = myManageHook
-        , logHook     = myLogHook xmobarPipe >> historyHook
+        , logHook     = myLogHook xmobarPipe >> GroupNav.historyHook
         , startupHook = myStartupHook
-        , normalBorderColor  = blue
-        , focusedBorderColor = pink
+        , normalBorderColor  = Config.blue
+        , focusedBorderColor = Config.pink
         , handleEventHook    = myHandleEventHook
-        } `additionalKeysP` Keys.stringMap
-          `additionalKeys`  Keys.maskMap
-  xmobarPipe <- spawnPipe "xmobar ~/.xmonad/bar/xmobarrc"
-  xmonad $ withNavigation2DConfig def (myConfig xmobarPipe)
+        } `EZ.additionalKeysP` Keys.stringMap
+          `EZ.additionalKeys`  Keys.maskMap
+  xmobarPipe <- Run.spawnPipe "xmobar ~/.xmonad/bar/xmobarrc"
+  xmonad $ Nav2D.withNavigation2DConfig def (myConfig xmobarPipe)

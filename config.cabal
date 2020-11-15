@@ -14,6 +14,7 @@ library
       Keys
       Layouts
       StackOps
+      UrgencyHook
   other-modules:
       Paths_config
   hs-source-dirs:
