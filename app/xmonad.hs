@@ -12,6 +12,7 @@ import qualified XMonad.Util.SpawnOnce          as Once
 import qualified XMonad.Util.EZConfig           as EZ
 import qualified XMonad.Layout.Fullscreen       as Full
 import qualified XMonad.Hooks.UrgencyHook       as Urgency
+
 import XMonad
 
 import qualified UrgencyHook
@@ -64,7 +65,8 @@ trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut 
 myStartupHook :: X ()
 myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
   Once.spawnOnce "sh ~/.screenlayout/MainSetup.sh"
-  Once.spawnOnce "xrdb ~/.Xdefaults"
+  Once.spawnOnce "xrdb ~/.Xresources"
+  Once.spawnOnce "sh ~/.xinitrc"
   Once.spawnOnce trayer
   Once.spawnOnce "sh ~/.fehbg"
   Once.spawnOnce "urxvtd"

@@ -89,8 +89,6 @@ mergingSubLayouts =
   , ((Config.modm .|. controlMask, xK_l), sendMessage       (pullGroup R))
   ]
 
-
-
 extraSwapKeys :: [(String, X ())]
 extraSwapKeys =
   [ ("M-;", windows W.swapDown) -- sawp tabs down
