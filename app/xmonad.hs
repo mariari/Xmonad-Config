@@ -1,10 +1,6 @@
-{-# LANGUAGE AllowAmbiguousTypes, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
-
 module Main where
 
-import Data.List
-import Data.Monoid
-import Control.Applicative ((<|>))
+import qualified Data.Monoid as Monoid
 
 import qualified XMonad.Core                    as Core
 import qualified XMonad.Actions.ShowText        as ShowText
@@ -19,43 +15,17 @@ import qualified XMonad.Hooks.ManageDocks       as ManageDocks
 import qualified XMonad.Util.SpawnOnce          as Once
 import qualified XMonad.Util.EZConfig           as EZ
 import qualified XMonad.Layout.Fullscreen       as Full
-import qualified XMonad.Actions.CopyWindow      as CopyWindow -- like cylons, except x windows
 import qualified XMonad.Hooks.UrgencyHook       as Urgency
-import XMonad --hiding ((|||))
+import XMonad
 
 import qualified UrgencyHook
 import qualified Layouts
 import qualified Configuration as Config
 import qualified Keys
 
-data XCond = WS | LD
-
--- | Choose an action based on the current workspace id (WS) or
--- layout description (LD).
-chooseAction :: XCond -> (String -> X ()) -> X ()
-chooseAction WS f = withWindowSet (f . W.currentTag)
-chooseAction LD f = withWindowSet (f . description . W.layout . W.workspace . W.current)
-
--- | If current workspace or layout string is listed, run the associated
--- action (only the first match counts!) If it isn't listed, then run the default
--- action (marked with empty string, \"\"), or do nothing if default isn't supplied.
-bindOn :: XCond -> [(String, X ())] -> X ()
-bindOn xc bindings = chooseAction xc $ chooser
-  where
-    chooser xc =
-      maybe (return ())
-            snd
-            (find ((xc ==) . fst) bindings <|> find (("" ==) . fst) bindings)
-
-toggleCopyToAll :: X ()
-toggleCopyToAll = CopyWindow.wsContainingCopies >>= f
-  where
-    f []    = windows CopyWindow.copyToAll
-    f (_:_) = CopyWindow.killAllOtherCopies
-
 -- Rules which are applied to each new window.  The (optional) part before
 -- '-->' is a matching rule.  The rest is an action to perform.
-myManageHook :: Query (Endo WindowSet)
+myManageHook :: Query (Monoid.Endo WindowSet)
 myManageHook = composeAll
   [ resource =? "Do"       --> doIgnore          -- Leave Gnome Do alone.
   , resource =? "Pidgin"   --> doShift Config.w3 -- Force to IM workspace.
@@ -95,7 +65,7 @@ myLogHook xmobarPipe = DL.dynamicLogWithPP xmobarPrinter
       , DL.ppUrgent  = DL.xmobarColor "pink" Config.themeHighlight }
 
 
-myHandleEventHook :: Event -> X All
+myHandleEventHook :: Event -> X Monoid.All
 myHandleEventHook = ManageDocks.docksEventHook <> handleEventHook def
 
 trayer :: String
