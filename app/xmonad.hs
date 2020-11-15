@@ -2,10 +2,6 @@ module Main where
 
 import qualified Data.Monoid as Monoid
 
-import qualified XMonad.Core                    as Core
-import qualified XMonad.Actions.ShowText        as ShowText
-
-import qualified XMonad.StackSet                as W
 import qualified XMonad.Actions.GroupNavigation as GroupNav
 import qualified XMonad.Util.Run                as Run
 import qualified XMonad.Actions.Navigation2D    as Nav2D
@@ -35,14 +31,6 @@ myManageHook = composeAll
   , resource =? "guake"    --> doFloat
   , ManageDocks.manageDocks                       -- For xmobar
   ]
-
-
-foo :: X ()
-foo = do
-  state <- get
-  let windowSet = Core.windowset state
-  ShowText.flashText def 10000 (show (W.allWindows windowSet))
-
 
 ----------------------------------------------------------------
 -- HOOKS

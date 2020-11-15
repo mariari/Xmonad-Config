@@ -1,13 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module StackOps where
 
-import XMonad --hiding ((|||))
-import qualified XMonad.StackSet as W
-
+import XMonad
+import qualified XMonad.StackSet          as W
 import qualified XMonad.Layout.SubLayouts as SubLayout
-
-
-
 
 peekUp :: W.Stack a -> Maybe a
 peekUp W.Stack {up, down} =
