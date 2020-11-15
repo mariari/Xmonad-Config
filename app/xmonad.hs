@@ -63,7 +63,8 @@ trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut 
 
 myStartupHook :: X ()
 myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
-  Once.spawnOnce "sh ./screenlayout/MainSetup.sh"
+  Once.spawnOnce "sh ~/.screenlayout/MainSetup.sh"
+  Once.spawnOnce "xrdb ~/.Xdefaults"
   Once.spawnOnce trayer
   Once.spawnOnce "sh ~/.fehbg"
   Once.spawnOnce "urxvtd"
