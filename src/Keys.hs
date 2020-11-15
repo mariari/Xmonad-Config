@@ -23,6 +23,7 @@ import XMonad.Actions.Navigation2D
 import XMonad.Actions.MessageFeedback       -- pseudo conditional key bindings
 import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.SubLayouts             -- Layouts inside windows. Excellent.
+import qualified Data.Map  as Map
 
 import qualified Configuration as Config
 import qualified StackOps
@@ -39,7 +40,8 @@ stringMap =
   , ("M-d", spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-n", spawn "passmenu  -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-S-q", kill)
-  , ("M-S-C-;", io (exitWith ExitSuccess)) -- quit xmonad
+  , ("M-S-C-;", io exitSuccess) -- quit xmonad
+  , ("M-t", withFocused (windows . toggleFloat))
   ] <> myAddWorkspace Config.wsExtra
     <> myAddWorkspace (zip Config.myWorkspaces (fmap (: []) ['1'..'9']))
     <> monitorKeys
@@ -187,4 +189,9 @@ zipM' m _nm ks as f b = zipWith (\k d -> (m ++ k, f d b)) ks as
 
 tryMsgR :: (Message a, Message b) => a -> b -> X ()
 tryMsgR x y =
-  sequence_ [(tryMessageWithNoRefreshToCurrent x y), refresh]
+  sequence_ [tryMessageWithNoRefreshToCurrent x y, refresh]
+
+toggleFloat :: Ord a => a -> W.StackSet i l a s sd -> W.StackSet i l a s sd
+toggleFloat w s
+  | Map.member w (W.floating s) = W.sink w s
+  | otherwise                   = W.float w (W.RationalRect (1/3) (1/4) (1/2) (4/5)) s

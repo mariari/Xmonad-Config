@@ -12,6 +12,7 @@ import qualified XMonad.Util.SpawnOnce          as Once
 import qualified XMonad.Util.EZConfig           as EZ
 import qualified XMonad.Layout.Fullscreen       as Full
 import qualified XMonad.Hooks.UrgencyHook       as Urgency
+import qualified XMonad.Hooks.EwmhDesktops      as EWMH
 
 import XMonad
 
@@ -55,7 +56,7 @@ myLogHook xmobarPipe = DL.dynamicLogWithPP xmobarPrinter
 
 
 myHandleEventHook :: Event -> X Monoid.All
-myHandleEventHook = ManageDocks.docksEventHook <> handleEventHook def
+myHandleEventHook = ManageDocks.docksEventHook <> EWMH.fullscreenEventHook <> handleEventHook def
 
 trayer :: String
 trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut true \
@@ -97,4 +98,6 @@ main = do
         } `EZ.additionalKeysP` Keys.stringMap
           `EZ.additionalKeys`  Keys.maskMap
   xmobarPipe <- Run.spawnPipe "xmobar ~/.xmonad/bar/xmobarrc"
-  xmonad $ Nav2D.withNavigation2DConfig def (myConfig xmobarPipe)
+  xmonad
+    $ EWMH.ewmh
+    $ Nav2D.withNavigation2DConfig def (myConfig xmobarPipe)
