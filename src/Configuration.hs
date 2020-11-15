@@ -2,16 +2,17 @@
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 module Configuration where
 
-import XMonad --hiding ((|||))
+import qualified XMonad
 import qualified XMonad.Layout.Tabbed as Tabbed
 import qualified XMonad.Layout.ShowWName as ShowWName
 
 ws :: [String]
-ws = ["1:一", "2:二", "3:三",
-      "4:四", "5:五", "6:六",
-      "7:七", "8:八", "9:九",
-      "10:十", "11:十一", "12:十二",
-      "13:十三","14:十四", "15:十五"]
+ws = [ "1:一", "2:二", "3:三"
+     , "4:四", "5:五", "6:六"
+     , "7:七", "8:八", "9:九"
+     , "10:十"  , "11:十一", "12:十二"
+     , "13:十三", "14:十四", "15:十五"
+     ]
 
 wsExtra :: [(String, String)]
 wsExtra = [("10:十",   "0"), ("11:十一", "p"), ("12:十二", "o")
@@ -40,10 +41,8 @@ w14 = wext 4
 myWorkspaces :: [String]
 myWorkspaces = ws
 
-
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = False
-
 
 myClickJustFocuses :: Bool
 myClickJustFocuses = True
@@ -71,11 +70,11 @@ pink    = "#d96476"
 green   = "#859900"
 
 -- sizes
-gap :: Int
 
+gap :: Int
 gap = 5
 
-topbar :: Dimension
+topbar :: XMonad.Dimension
 topbar = 5
 
 border :: Integer
@@ -87,10 +86,12 @@ prompt = 10
 status :: Integer
 status = 20
 
+smallMonResWidth :: XMonad.Dimension
+smallMonResWidth = 1920
+
 myNormalBorderColor, myFocusedBorderColor :: String
 myNormalBorderColor     = "#000000"
 myFocusedBorderColor    = active
-
 
 active, activeWarn, inactive, focusColor, unfocusColor :: String
 active      = blue
@@ -98,7 +99,6 @@ activeWarn  = red
 inactive    = base02
 focusColor  = blue
 unfocusColor = base02
-
 
 myFont, myBigFont, myWideFont :: String
 
@@ -113,11 +113,11 @@ themeBackground = "#3c3b37"
 themeHighlight :: String
 themeHighlight = "#f07746"
 
-modm :: KeyMask
-modm = mod4Mask
+modm :: XMonad.KeyMask
+modm = XMonad.mod4Mask
 
 myTabTheme :: Tabbed.Theme
-myTabTheme = def Tabbed.Theme
+myTabTheme = XMonad.def Tabbed.Theme
     { fontName              = myFont
     , activeColor           = active
     , inactiveColor         = base02
@@ -128,7 +128,7 @@ myTabTheme = def Tabbed.Theme
     }
 
 topBarTheme :: Tabbed.Theme
-topBarTheme = def Tabbed.Theme
+topBarTheme = XMonad.def Tabbed.Theme
     { fontName              = myFont
     , inactiveBorderColor   = blue
     , inactiveColor         = base03
