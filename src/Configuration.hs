@@ -6,6 +6,9 @@ import qualified XMonad
 import qualified XMonad.Layout.Tabbed as Tabbed
 import qualified XMonad.Layout.ShowWName as ShowWName
 
+screenOrdering :: [XMonad.ScreenId]
+screenOrdering = [2,0,1]
+
 ws :: [String]
 ws = [ "1:一", "2:二", "3:三"
      , "4:四", "5:五", "6:六"
@@ -90,8 +93,8 @@ smallMonResWidth :: XMonad.Dimension
 smallMonResWidth = 1920
 
 myNormalBorderColor, myFocusedBorderColor :: String
-myNormalBorderColor     = "#000000"
-myFocusedBorderColor    = active
+myNormalBorderColor  = "#000000"
+myFocusedBorderColor = active
 
 active, activeWarn, inactive, focusColor, unfocusColor :: String
 active      = blue

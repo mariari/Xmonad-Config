@@ -11,12 +11,14 @@ build-type:     Simple
 library
   exposed-modules:
       Configuration
+      Keys
       Layouts
+      StackOps
   other-modules:
       Paths_config
   hs-source-dirs:
       src
-  default-extensions: DisambiguateRecordFields
+  default-extensions: DisambiguateRecordFields NamedFieldPuns
   ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -fno-warn-name-shadowing -Wno-type-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wno-name-shadowing
   build-depends:
       X11
@@ -34,7 +36,7 @@ executable config
       Paths_config
   hs-source-dirs:
       app
-  default-extensions: DisambiguateRecordFields
+  default-extensions: DisambiguateRecordFields NamedFieldPuns
   ghc-options: -ferror-spans -Wall -fno-warn-orphans -fno-warn-name-shadowing -fno-warn-type-defaults -fno-warn-name-shadowing -Wno-type-defaults -fno-warn-missing-pattern-synonym-signatures -j -static -fwrite-ide-info -Wno-name-shadowing -Wall -fwarn-tabs -threaded -O2 -with-rtsopts=-N4 -fwarn-incomplete-patterns -fno-warn-name-shadowing
   build-depends:
       X11

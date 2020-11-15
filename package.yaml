@@ -17,6 +17,7 @@ ghc-options:
 
 default-extensions:
   - DisambiguateRecordFields
+  - NamedFieldPuns
 
 dependencies:
   - X11
