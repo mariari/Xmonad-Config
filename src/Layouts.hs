@@ -3,38 +3,36 @@
 
 module Layouts where
 
-import qualified XMonad.Layout.BoringWindows  as Boring
-import qualified XMonad.Layout.Renamed        as Renamed
-import qualified XMonad.Layout.LayoutModifier as LayoutModifier
-import qualified XMonad.Layout.NoBorders      as NoBorders
-import qualified XMonad.Layout.Circle         as Circle
-import qualified XMonad.Layout.Grid           as Grid
-import qualified XMonad.Layout.IM             as IM
-import qualified XMonad.Hooks.ManageDocks     as ManageDocks
-import qualified XMonad.Layout.FixedColumn    as FixedCoulmn
-import qualified XMonad.Layout.PerWorkspace   as PerWorkspace
-import qualified XMonad.Layout.Reflect        as Reflect
-import qualified XMonad.Layout.Gaps           as Gaps
-import qualified XMonad.Layout.MultiToggle    as MultiTog
-import XMonad
-import XMonad.Layout.SimpleFloat
-import XMonad.Layout.Tabbed
-import XMonad.Layout.ToggleLayouts
-import XMonad.Layout.Accordion
-import XMonad.Layout.ResizableTile
-import XMonad.Layout.BinarySpacePartition
-import XMonad.Layout.Hidden
-import XMonad.Layout.NoFrillsDecoration
-import XMonad.Layout.PerScreen              -- Check screen width & adjust layouts
-import XMonad.Layout.ShowWName
-import XMonad.Layout.Simplest
-import XMonad.Layout.Spacing                -- this makes smart space around windows
-import XMonad.Layout.SubLayouts             -- Layouts inside windows. Excellent.
-import XMonad.Layout.ThreeColumns
-import XMonad.Layout.WindowNavigation
+import qualified XMonad.Layout.BoringWindows        as Boring
+import qualified XMonad.Layout.Renamed              as Renamed
+import qualified XMonad.Layout.LayoutModifier       as LayoutModifier
+import qualified XMonad.Layout.NoBorders            as NoBorders
+import qualified XMonad.Layout.Circle               as Circle
+import qualified XMonad.Layout.Grid                 as Grid
+import qualified XMonad.Layout.IM                   as IM
+import qualified XMonad.Hooks.ManageDocks           as ManageDocks
+import qualified XMonad.Layout.FixedColumn          as FixedCoulmn
+import qualified XMonad.Layout.PerWorkspace         as PerWorkspace
+import qualified XMonad.Layout.Reflect              as Reflect
+import qualified XMonad.Layout.Gaps                 as Gaps
+import qualified XMonad.Layout.MultiToggle          as MultiTog
+import qualified XMonad.Layout.Tabbed               as Tabbed
+import qualified XMonad.Layout.ToggleLayouts        as TogLayout
+import qualified XMonad.Layout.Accordion            as Accordion
+import qualified XMonad.Layout.ResizableTile        as Resize
+import qualified XMonad.Layout.NoFrillsDecoration   as NoFrills
+import qualified XMonad.Layout.PerScreen            as PerScreen -- Check screen width & adjust layouts
+import qualified XMonad.Layout.Spacing              as Spacing   -- this makes smart space around windows
+import qualified XMonad.Layout.SubLayouts           as SubLayout -- Layouts inside windows. Excellent.
+import qualified XMonad.Layout.ShowWName            as WName
+import qualified XMonad.Layout.ThreeColumns         as ThreeColumn
+import qualified XMonad.Layout.Hidden               as Hidden
+import qualified XMonad.Layout.BinarySpacePartition as BSP
+import qualified XMonad.Layout.Simplest             as Simplest
+import qualified XMonad.Layout.WindowNavigation     as WindowNavigation
 
 import qualified Configuration as Config
-
+import XMonad
 
 --------------------------------------------------------------------------------
 -- Main Layout for configuration
@@ -45,7 +43,7 @@ myLayout
   $ NoBorders.smartBorders
   $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTY)
   $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTX)
-  $ toggleLayouts (Boring.boringWindows Full) workspaceLayouts
+  $ TogLayout.toggleLayouts (Boring.boringWindows Full) workspaceLayouts
 
 workspaceLayouts
   = PerWorkspace.onWorkspace Config.w2 webLayouts
@@ -63,7 +61,7 @@ workspaceLayouts
                      Mirror tilePipeLine
 
     tilePipeLine = defaultLayoutPipeline tiledLayout
-    _showWorkspaceName  = showWName' Config.myShowWNameTheme
+    _showWorkspaceName = WName.showWName' Config.myShowWNameTheme
 
 --------------------------------------------------------------------------------
 -- Layouts
@@ -72,8 +70,8 @@ workspaceLayouts
 -- A standard tiled layout, with a master pane and a secondary pane off to
 -- the side.  The master pane typically holds one window; the secondary
 -- pane holds the rest.  Copied from standard xmonad.hs template config.
-tiledLayout :: ResizableTall a
-tiledLayout = ResizableTall nmaster delta ratio []
+tiledLayout :: Resize.ResizableTall a
+tiledLayout = Resize.ResizableTall nmaster delta ratio []
   where
     nmaster = 1      -- The default number of windows in the master pane.
     ratio   = 1/2    -- Default proportion of screen occupied by master pane.
@@ -87,40 +85,43 @@ tiledLayout = ResizableTall nmaster delta ratio []
 
 flex =
   defaultLayoutPipeline
-  $ subLayout [] (Simplest ||| uniformGaps Accordion)
-  $ ifWider Config.smallMonResWidth wideLayouts standardLayouts
+  $ SubLayout.subLayout [] (Simplest.Simplest ||| uniformGaps Accordion.Accordion)
+  $ PerScreen.ifWider Config.smallMonResWidth wideLayouts standardLayouts
      where
        wideLayouts = myGaps
                    $ uniformGaps
                    $ tiledLayout
-                   -- $ trimSuffixed 1 "Wide BSP" (hiddenWindows emptyBSP)
-                 ||| suffixed "Wide 3Col" (ThreeColMid 1 (1/20) (1/2))
+                 ||| suffixed "Wide 3Col" (ThreeColumn.ThreeColMid 1 (1/20) (1/2))
        standardLayouts =
          myGaps
          $ uniformGaps
          $ tiledLayout
-         -- $ trimSuffixed 1 "Wide BSP" $ hiddenWindows emptyBSP
-         ||| suffixed "Std 2/3" (ResizableTall 1 (1/20) (2/3) [])
-         ||| suffixed "Std 1/2" (ResizableTall 1 (1/20) (1/2) [])
+         ||| suffixed "Std 2/3" (Resize.ResizableTall 1 (1/20) (2/3) [])
+         ||| suffixed "Std 1/2" (Resize.ResizableTall 1 (1/20) (1/2) [])
 
 threeCol = named "Unflexed"
              $ addTopBar
              $ Boring.boringAuto
              $ myGaps
              $ uniformGaps
-             $ ThreeColMid 1 (1/10) (1/2)
+             $ ThreeColumn.ThreeColMid 1 (1/10) (1/2)
 
-addTopBar = noFrillsDeco shrinkText Config.topBarTheme
+addTopBar = NoFrills.noFrillsDeco NoFrills.shrinkText Config.topBarTheme
 
 tabs = named "Tabs"
      $ defaultLayoutTile
-     $ Simplest
+     $ Simplest.Simplest
 
-twoDLayout = trimNamed 10 "test"
-           $ defaultLayoutPipeline
-           $ subLayout [0,1] (Simplest ||| (uniformGaps $ Accordion))
-           $ subLayout [0,1] (Simplest ||| Accordion ||| simpleTabbed)
-           $ tiledLayout ||| Full
+twoDLayout
+  = trimNamed 10 "test"
+  $ defaultLayoutPipeline
+  $ SubLayout.subLayout
+      [0,1]
+      (Simplest.Simplest ||| (uniformGaps $ Accordion.Accordion))
+  $ SubLayout.subLayout
+      [0,1]
+      (Simplest.Simplest ||| Accordion.Accordion ||| Tabbed.simpleTabbed)
+  $ tiledLayout ||| Full
 
 uniformGaps = uniformSpacing Config.gap
 
@@ -129,9 +130,9 @@ defaultLayoutPipeline x = defaultPred Boring.boringAuto x
 defaultLayoutTile x = defaultPred Boring.boringWindows x
 
 defaultPred boringFunc x =
-  windowNavigation
+  WindowNavigation.windowNavigation
   $ boringFunc
-  $ addTabs shrinkText Config.myTabTheme
+  $ Tabbed.addTabs NoFrills.shrinkText Config.myTabTheme
   $ x
 
 -- An 80-column fixed layout for Emacs and terminals.  The master
@@ -142,6 +143,8 @@ fixedLayout = FixedCoulmn.FixedColumn 1 20 80 10
 ------------------------------------------------------------
 -- Legacy Layouts
 ------------------------------------------------------------
+
+hiddenBSP = trimSuffixed 1 "Wide BSP" $ Hidden.hiddenWindows BSP.emptyBSP
 
 -- Currently unused
 -- A layout for instant messaging.  Devote 1/6th of the screen to
@@ -170,9 +173,11 @@ skypeMainWindow = (IM.And (IM.Resource "skype")
 ------------------------------------------------------------
 
 myLayout' =
-  windowNavigation
-  $ addTabs shrinkText Config.myTabTheme
-  $ subLayout [0,1,2] (Tall 1 0.2 0.5 ||| Simplest ||| Circle.Circle)
+  WindowNavigation.windowNavigation
+  $ Tabbed.addTabs NoFrills.shrinkText Config.myTabTheme
+  $ SubLayout.subLayout
+      [0,1,2]
+      (Tall 1 0.2 0.5 ||| Simplest.Simplest ||| Circle.Circle)
   $ tiledLayout ||| Full
 
 --------------------------------------------------------------------------------
@@ -192,18 +197,24 @@ sGap = quot Config.gap 2
 
 myGaps :: l a -> LayoutModifier.ModifiedLayout Gaps.Gaps l a
 myGaps =
-  Gaps.gaps [(U, Config.gap), (D, Config.gap), (L, Config.gap), (R, Config.gap)]
+  Gaps.gaps [ (WindowNavigation.U, Config.gap)
+            , (WindowNavigation.D, Config.gap)
+            , (WindowNavigation.L, Config.gap)
+            , (WindowNavigation.R, Config.gap)]
 
 mySmallGaps :: l a -> LayoutModifier.ModifiedLayout Gaps.Gaps l a
 mySmallGaps =
-  Gaps.gaps [(U, sGap), (D, sGap), (L, sGap), (R, sGap)]
+  Gaps.gaps [ (WindowNavigation.U, sGap)
+            , (WindowNavigation.D, sGap)
+            , (WindowNavigation.L, sGap)
+            , (WindowNavigation.R, sGap)]
 
 myBigGaps :: l a -> LayoutModifier.ModifiedLayout Gaps.Gaps l a
 myBigGaps =
-  Gaps.gaps [ (U, Config.gap * 2)
-            , (D, Config.gap * 2)
-            , (L, Config.gap * 2)
-            , (R, Config.gap * 2)
+  Gaps.gaps [ (WindowNavigation.U, Config.gap * 2)
+            , (WindowNavigation.D, Config.gap * 2)
+            , (WindowNavigation.L, Config.gap * 2)
+            , (WindowNavigation.R, Config.gap * 2)
             ]
 
 ------------------------------------------------------------
@@ -220,6 +231,8 @@ trimSuffixed w n = Renamed.renamed [ Renamed.CutWordsRight w
 -- Spacing
 ------------------------------------------------------------
 
-uniformSpacing :: Int -> l a -> LayoutModifier.ModifiedLayout Spacing l a
-uniformSpacing i = spacingRaw True (Border 0 0 0 0) False (Border i' i' i' i') True
-    where i' = fromIntegral i
+uniformSpacing :: Int -> l a -> LayoutModifier.ModifiedLayout Spacing.Spacing l a
+uniformSpacing i =
+  Spacing.spacingRaw True (same 0) False (same (fromIntegral i)) True
+  where
+    same x = Spacing.Border x x x x
