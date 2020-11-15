@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE AllowAmbiguousTypes, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
 
 module Main where
@@ -139,8 +141,6 @@ myKeys =
          )
            | (key, scr)  <- zip "wer" [2,0,1] -- was [0..] *** change to match your screen order ***
            , (action, mask) <- [ (W.view, ""), (W.greedyView, "C-")]]
-    <> zipM  "M-C-" "Merge w/sublayout" dirKeys dirs (sendMessage . pullGroup)
-    -- <> zipM  "M-C-" "unmege" dirKeys dirs (sendMessage . )
 --  <> zipM' "M-"               "Navigate screen"                           arrowKeys dirs screenGo True
     <> zipM' "M-"   "Navigate window"              arrowKeys dirs windowGo True
     <> zipM' "C-S-" "Move window"                  arrowKeys dirs windowSwap True
@@ -201,9 +201,47 @@ myKeys' = [ ((modm, xK_F1), manPrompt def)
           , ((modm, xK_s     ), asks config >>= (Submap.submap . defaultSublMap))
           , ((modm, xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
           , ((modm, xK_j     ), Boring.focusDown    ) -- %! Swap the focused window with the next window
-          , ((modm, xK_k     ), Boring.focusDown    ) -- %! Swap the focused window with the previous window
-          -- , ((modm, xK_BackSpace), nextMatch History (return True) >> )
+          , ((modm, xK_k     ), Boring.focusUp      ) -- %! Swap the focused window with the previous window
+          , ((modm, xK_BackSpace), nextMatch History (return True))
+          -- Merge w/ sublayout
+          -- , ((modm .|. controlMask, xK_j), withFocused (sendMessage . mergeDir W.focusDown'))
+          -- , ((modm .|. controlMask, xK_k), withFocused (sendMessage . mergeDir W.focusUp'))
+          , ((modm .|. controlMask, xK_j), onWindow (mergeGroup peekDown))
+          , ((modm .|. controlMask, xK_k), onWindow (mergeGroup peekUp))
+          , ((modm .|. controlMask, xK_h), sendMessage (pullGroup L))
+          , ((modm .|. controlMask, xK_l), sendMessage (pullGroup R))
           ]
+
+peekUp :: W.Stack a -> Maybe a
+peekUp W.Stack {up, down} =
+  case up of
+    u : us -> Just u
+    [] ->
+      case reverse down of
+        d : ls -> Just d
+        []     -> Nothing
+
+peekDown :: W.Stack a -> Maybe a
+peekDown = peekUp . reverseStack
+
+reverseStack :: W.Stack a -> W.Stack a
+reverseStack (W.Stack t ls rs) = W.Stack t rs ls
+
+mergeGroup :: Typeable a => (W.Stack a -> Maybe a) -> W.Stack a -> X ()
+mergeGroup peekF w@(W.Stack {focus}) =
+  case peekF w of
+    Just lo -> do
+      sendMessage (Merge focus lo)
+    Nothing -> pure ()
+
+-- Uses low level xmonad primitives
+-- should figure out if there is a std lib function that does it
+onWindow :: (W.Stack Window -> X ()) -> X ()
+onWindow f = do
+  stack <- gets (W.stack . W.workspace . W.current . windowset)
+  case stack of
+    Just x  -> f x
+    Nothing -> pure ()
 
 -- updatedSubMap s =
 --   Map.insert (modm, xK_space) (toSubl (W.swapMaster))
