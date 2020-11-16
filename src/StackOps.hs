@@ -6,7 +6,6 @@ import qualified XMonad.StackSet          as W
 import qualified XMonad.Layout.SubLayouts as SubLayout
 import XMonad.Actions.Warp
 
-
 peekUp :: W.Stack a -> Maybe a
 peekUp W.Stack {up, down} =
   case up of
@@ -59,13 +58,3 @@ onWindowFail g f = do
 -- should figure out if there is a std lib function that does it
 onWindow :: (W.Stack Window -> X ()) -> X ()
 onWindow = onWindowFail (pure ())
-
-
-warpToCurrentScreen :: X ()
-warpToCurrentScreen = do
-  dpy <- asks display
-  root <- asks theRoot
-  (_sameRoot,_,_currentWidnow, rootX, rootY,_,_,_) <- io $ queryPointer dpy root
-  ws <- gets windowset
-  warpToScreen (W.screen $ W.current ws) (fromIntegral rootX) (fromIntegral rootY)
-  windows (const ws)
