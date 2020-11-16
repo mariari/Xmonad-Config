@@ -14,7 +14,7 @@ import qualified Control.Monad as Monad
 warpToCurrentScreen :: X ()
 warpToCurrentScreen = do
   XConf {display, theRoot, mouseFocused} <- ask
-  Monad.when mouseFocused $ do
+  Monad.unless mouseFocused $ do
     (_, _, currentWindow, _, _, _, _, _) <- io $ queryPointer display theRoot
     stack <- gets (W.stack . W.workspace . W.current . windowset)
     case stack of
