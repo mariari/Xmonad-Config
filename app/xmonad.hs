@@ -13,6 +13,8 @@ import qualified XMonad.Util.EZConfig           as EZ
 import qualified XMonad.Layout.Fullscreen       as Full
 import qualified XMonad.Hooks.UrgencyHook       as Urgency
 import qualified XMonad.Hooks.EwmhDesktops      as EWMH
+import XMonad.Actions.UpdatePointer
+import qualified MousePos
 
 import XMonad
 
@@ -56,7 +58,8 @@ myLogHook xmobarPipe = DL.dynamicLogWithPP xmobarPrinter
 
 
 myHandleEventHook :: Event -> X Monoid.All
-myHandleEventHook = ManageDocks.docksEventHook <> EWMH.fullscreenEventHook <> handleEventHook def
+myHandleEventHook = ManageDocks.docksEventHook -- <> EWMH.fullscreenEventHook
+                 <> handleEventHook def
 
 trayer :: String
 trayer = "trayer --edge top --align center --SetDockType true --SetPartialStrut true \
@@ -90,7 +93,9 @@ main = do
         , terminal    = "urxvtc"
         , layoutHook  = Layouts.hook
         , manageHook  = myManageHook
-        , logHook     = myLogHook xmobarPipe >> GroupNav.historyHook
+        , logHook     = myLogHook xmobarPipe
+                      >> GroupNav.historyHook
+                      >> MousePos.warpToCurrentScreen
         , startupHook = myStartupHook
         , normalBorderColor  = Config.blue
         , focusedBorderColor = Config.pink

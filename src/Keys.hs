@@ -28,9 +28,13 @@ import qualified Data.Map  as Map
 import qualified Configuration as Config
 import qualified StackOps
 
+
 --------------------------------------------------------------------------------
 -- Main Key bindings
 --------------------------------------------------------------------------------
+
+-- windows with warp to window have them not to warp between windows, but
+-- to always warp to the center of the current screen
 
 stringMap :: [(String, X ())]
 stringMap =
@@ -66,7 +70,7 @@ maskMap
               \ else xmessage xmonad not in \\$PATH: \"$PATH\"; fi")
     , ((Config.modm, xK_s     ), asks config >>= Submap.submap . defaultSublMap)
     , ((Config.modm, xK_Return), windows W.swapMaster)
-    , ((Config.modm, xK_BackSpace), GroupNav.nextMatch GroupNav.History (return True))
+    , ((Config.modm, xK_BackSpace), GroupNav.nextMatch GroupNav.History (return True) >> warpToMidWindow)
     ] <> mergingSubLayouts
       <> focusMaskMap
 

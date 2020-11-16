@@ -13,6 +13,7 @@ library
       Configuration
       Keys
       Layouts
+      MousePos
       StackOps
       UrgencyHook
   other-modules:

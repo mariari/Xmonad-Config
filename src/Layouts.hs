@@ -47,9 +47,10 @@ hook
 
 workspaceLayouts
   = PerWorkspace.onWorkspace Config.w2 webLayouts
-  $ PerWorkspace.onWorkspace Config.w6 (tabs ||| defaultLayouts)
-  $ PerWorkspace.onWorkspace Config.w4 (tabs ||| defaultLayouts)
-  $ PerWorkspace.onWorkspace Config.w8 (tabs ||| defaultLayouts)
+  $ PerWorkspace.onWorkspace Config.w6  (tabs ||| defaultLayouts)
+  $ PerWorkspace.onWorkspace Config.w4  (tabs ||| defaultLayouts)
+  $ PerWorkspace.onWorkspace Config.w8  (tabs ||| defaultLayouts)
+  $ PerWorkspace.onWorkspace Config.w13 (tabs ||| defaultLayouts)
   $ PerWorkspace.onWorkspace Config.w10 myLayout'
   $ defaultLayouts
   where
