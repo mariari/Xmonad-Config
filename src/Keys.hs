@@ -27,8 +27,6 @@ import qualified Data.Map  as Map
 
 import qualified Configuration as Config
 import qualified StackOps
-
-
 --------------------------------------------------------------------------------
 -- Main Key bindings
 --------------------------------------------------------------------------------

@@ -30,6 +30,7 @@ import qualified XMonad.Layout.Hidden               as Hidden
 import qualified XMonad.Layout.BinarySpacePartition as BSP
 import qualified XMonad.Layout.Simplest             as Simplest
 import qualified XMonad.Layout.WindowNavigation     as WindowNavigation
+import qualified XMonad.Layout.TrackFloating        as Track
 
 import qualified Configuration as Config
 import XMonad
@@ -43,6 +44,7 @@ hook
   $ NoBorders.smartBorders
   $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTY)
   $ MultiTog.mkToggle (MultiTog.single Reflect.REFLECTX)
+  $ Track.trackFloating
   $ TogLayout.toggleLayouts (Boring.boringWindows Full) workspaceLayouts
 
 workspaceLayouts
