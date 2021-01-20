@@ -124,11 +124,13 @@ audioKeys =
 
 imageUploading :: [(String, X ())]
 imageUploading =
-  [ ("C-S-2", spawn "puush -c")
-  , ("C-S-3", spawn "puush -a")
-  , ("C-S-4", spawn "puush -b")
-  , ("C-S-5", spawn "puush -d")
-  , ("C-S-1", spawn "puush -e") ]
+  [ ("C-S-1", spawn "~/scripts/maim/current.sh")
+  , ("C-S-2", spawn "~/scripts/maim/section.sh")
+  -- , ("C-S-3", spawn "puush -a")
+
+  -- , ("C-S-5", spawn "puush -d")
+  -- , ("C-S-1", spawn "puush -e")
+  ]
 
 resizing :: [(String, X ())]
 resizing =

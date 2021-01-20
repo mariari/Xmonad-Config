@@ -168,9 +168,9 @@ skypeLayout :: LayoutModifier.ModifiedLayout IM.AddRoster Grid.Grid a
 skypeLayout = IM.withIM (1/6) skypeMainWindow Grid.Grid
 
 skypeMainWindow :: IM.Property
-skypeMainWindow = (IM.And (IM.Resource "skype")
-                          (IM.Not (IM.Or (IM.Title "Transferts de fichiers")
-                                  (IM.Role "ConversationsWindow"))))
+skypeMainWindow = IM.And (IM.Resource "skype")
+                         (IM.Not (IM.Or (IM.Title "Transferts de fichiers")
+                                 (IM.Role "ConversationsWindow")))
 -- avoidStruts is what allows xmobar and taffybar to stay on the screen
 
 ------------------------------------------------------------
