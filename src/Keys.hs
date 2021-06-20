@@ -10,7 +10,10 @@ import qualified XMonad.Actions.Warp            as Warp
 import qualified XMonad.StackSet                as W
 import qualified XMonad.Layout.Reflect          as Reflect
 import qualified XMonad.Layout.MultiToggle      as MultiTog
-
+import qualified XMonad.Prompt.Shell            as Prompt.Shell
+import qualified XMonad.Prompt                  as Prompt
+import qualified XMonad.Prompt.Window           as Window
+import qualified XMonad.Actions.WorkspaceNames as WorkSpaceNames
 import XMonad --hiding ((|||))
 import XMonad.Actions.GridSelect
 import XMonad.Hooks.ManageDocks
@@ -27,6 +30,14 @@ import qualified Data.Map  as Map
 
 import qualified Configuration as Config
 import qualified StackOps
+import qualified Shell
+
+data Mpv = Mpv
+
+instance Prompt.XPrompt Mpv where
+  showXPrompt Mpv     = "MPV on: "
+  completionToCommand _ = Shell.escape
+
 --------------------------------------------------------------------------------
 -- Main Key bindings
 --------------------------------------------------------------------------------
@@ -34,12 +45,34 @@ import qualified StackOps
 -- windows with warp to window have them not to warp between windows, but
 -- to always warp to the center of the current screen
 
+prefixKey :: (KeyMask, KeySym)
+prefixKey = (Config.modm, xK_x)
+
+-- | @prefixMap@ is prefixMap for my xmonad keys
+prefixMap :: X ()
+prefixMap =
+  Submap.submap . Map.fromList $
+    [ ((0, xK_Return)    , Prompt.Shell.shellPrompt Config.promptConfig)
+    , ((0, xK_m)         , Shell.safePrompt Mpv "mpv" Config.promptConfig)
+    , ((shiftMask, xK_w) , Window.windowPrompt Config.promptConfig Window.Goto Window.wsWindows)
+    , ((0, xK_g)         , groupMap)
+    ]
+
+-- | @groupMap@ is the group submap
+groupMap :: X ()
+groupMap = Submap.submap . Map.fromList $
+    [ ((0, xK_r)         , WorkSpaceNames.renameWorkspace Config.promptConfig)
+    ]
+
 stringMap :: [(String, X ())]
 stringMap =
   [ ("M-g", goToSelected def)   -- Display window selection grid.
   , ("M-f",   sendMessage ToggleStruts <+> sendMessage ToggleLayout)
   , ("M-S-f", sendMessage ToggleLayout)
-  , ("M-d", spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
+  , ("M-d",
+     -- spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\""
+     Prompt.Shell.shellPrompt Config.promptConfig
+    )
   , ("M-n", spawn "passmenu  -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-S-q", kill)
   , ("M-S-C-;", io exitSuccess) -- quit xmonad
@@ -58,7 +91,12 @@ stringMap =
 
 maskMap :: [((KeyMask, KeySym), X ())]
 maskMap
-  = [ ((Config.modm, xK_F1), manPrompt def)
+  = [ (prefixKey, prefixMap)
+    , ((Config.modm, xK_equal ),
+       WorkSpaceNames.workspaceNamePrompt
+          Config.promptConfig
+          (\str -> windows (W.view str) >> warpToMidWindow))
+    , ((Config.modm, xK_F1), manPrompt def)
     , ((Config.modm, xK_b), sendMessage ToggleStruts)
     , ((Config.modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
     , ((Config.modm, xK_c), toSubl NextLayout)

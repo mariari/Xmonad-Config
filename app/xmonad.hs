@@ -13,6 +13,7 @@ import qualified XMonad.Util.EZConfig           as EZ
 import qualified XMonad.Layout.Fullscreen       as Full
 import qualified XMonad.Hooks.UrgencyHook       as Urgency
 import qualified XMonad.Hooks.EwmhDesktops      as EWMH
+import qualified XMonad.Actions.WorkspaceNames  as WorkSpaceNames
 import qualified MousePos
 
 import XMonad
@@ -46,7 +47,9 @@ myManageHook = composeAll
 -- and that the Gnome bottom panel has been removed.
 --
 myLogHook :: IO.Handle -> X ()
-myLogHook xmobarPipe = DL.dynamicLogWithPP xmobarPrinter
+myLogHook xmobarPipe = do
+  config <- WorkSpaceNames.workspaceNamesPP xmobarPrinter
+  DL.dynamicLogWithPP config
   where
     xmobarPrinter = def
       { DL.ppOutput  = IO.hPutStrLn xmobarPipe
@@ -100,7 +103,8 @@ main = do
         , terminal    = "urxvtc"
         , layoutHook  = Layouts.hook
         , manageHook  = myManageHook
-        , logHook     = myLogHook xmobarPipe >> GroupNav.historyHook
+        , logHook     =
+          myLogHook xmobarPipe >> GroupNav.historyHook
         , startupHook = myStartupHook
         , normalBorderColor  = Config.blue
         , focusedBorderColor = Config.pink

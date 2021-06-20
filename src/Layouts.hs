@@ -53,7 +53,7 @@ workspaceLayouts
   $ PerWorkspace.onWorkspace Config.w4  (tabs ||| defaultLayouts)
   $ PerWorkspace.onWorkspace Config.w8  (tabs ||| defaultLayouts)
   $ PerWorkspace.onWorkspace Config.w13 (tabs ||| defaultLayouts)
-  $ PerWorkspace.onWorkspace Config.w10 myLayout'
+ --  $ PerWorkspace.onWorkspace Config.w10 myLayout'
   $ defaultLayouts
   where
     _chatLayout    = myGaps Grid.Grid ||| defaultLayouts
@@ -177,13 +177,13 @@ skypeMainWindow = IM.And (IM.Resource "skype")
 -- Experimental Layouts
 ------------------------------------------------------------
 
-myLayout' =
-  WindowNavigation.windowNavigation
-  $ Tabbed.addTabs NoFrills.shrinkText Config.myTabTheme
-  $ SubLayout.subLayout
-      [0,1,2]
-      (Tall 1 0.2 0.5 ||| Simplest.Simplest ||| Circle.Circle)
-  $ tiledLayout ||| Full
+-- myLayout' =
+--   WindowNavigation.windowNavigation
+--   $ Tabbed.addTabs NoFrills.shrinkText Config.myTabTheme
+--   $ SubLayout.subLayout
+--       [0,1,2]
+--       (Tall 1 0.2 0.5 ||| Simplest.Simplest ||| Circle.Circle)
+--   $ tiledLayout ||| Full
 
 --------------------------------------------------------------------------------
 -- Helpers

@@ -14,6 +14,7 @@ library
       Keys
       Layouts
       MousePos
+      Shell
       StackOps
       UrgencyHook
   other-modules:

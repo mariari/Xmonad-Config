@@ -5,6 +5,8 @@ module Configuration where
 import qualified XMonad
 import qualified XMonad.Layout.Tabbed as Tabbed
 import qualified XMonad.Layout.ShowWName as ShowWName
+import qualified XMonad.Prompt as Prompt
+import qualified XMonad.Prompt.FuzzyMatch as Fuzzy
 
 screenOrdering :: [XMonad.ScreenId]
 screenOrdering = [2,0,1]
@@ -150,4 +152,13 @@ myShowWNameTheme = ShowWName.SWNC
     , swn_fade    = 0.5
     , swn_bgcolor = "#000000"
     , swn_color   = "#FFFFFF"
+    }
+
+promptConfig :: Prompt.XPConfig
+promptConfig =
+  Prompt.greenXPConfig
+    { Prompt.promptKeymap = Prompt.emacsLikeXPKeymap
+    , Prompt.position     = Prompt.Top
+    , Prompt.searchPredicate = Fuzzy.fuzzyMatch
+    , Prompt.sorter = Fuzzy.fuzzySort
     }
