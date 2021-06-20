@@ -158,7 +158,10 @@ promptConfig :: Prompt.XPConfig
 promptConfig =
   Prompt.greenXPConfig
     { Prompt.promptKeymap = Prompt.emacsLikeXPKeymap
-    , Prompt.position     = Prompt.Top
+    , Prompt.position     = Prompt.CenteredAt 0.5 0.5
     , Prompt.searchPredicate = Fuzzy.fuzzyMatch
     , Prompt.sorter = Fuzzy.fuzzySort
+    , Prompt.maxComplRows = Just 5
+    , Prompt.height = 20
+    , Prompt.font = myBigFont
     }

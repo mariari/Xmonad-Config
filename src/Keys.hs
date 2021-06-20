@@ -56,6 +56,8 @@ prefixMap =
     , ((0, xK_m)         , Shell.safePrompt Mpv "mpv" Config.promptConfig)
     , ((shiftMask, xK_w) , Window.windowPrompt Config.promptConfig Window.Goto Window.wsWindows)
     , ((0, xK_g)         , groupMap)
+    , ((0, xK_u)         , uploadCurrent)
+    , ((shiftMask, xK_u) , uploadSection)
     ]
 
 -- | @groupMap@ is the group submap
@@ -160,10 +162,18 @@ audioKeys =
   , ("<XF86AudioRaiseVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '+5%'")
   ]
 
+uploadCurrent :: X ()
+uploadCurrent =
+  spawn "~/scripts/maim/current.sh"
+
+uploadSection :: X ()
+uploadSection =
+  spawn "~/scripts/maim/section.sh"
+
 imageUploading :: [(String, X ())]
 imageUploading =
-  [ ("C-S-1", spawn "~/scripts/maim/current.sh")
-  , ("C-S-2", spawn "~/scripts/maim/section.sh")
+  [ ("C-S-1", uploadCurrent)
+  , ("C-S-2", uploadSection)
   -- , ("C-S-3", spawn "puush -a")
 
   -- , ("C-S-5", spawn "puush -d")
