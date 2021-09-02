@@ -98,7 +98,7 @@ maskMap
        WorkSpaceNames.workspaceNamePrompt
           Config.promptConfig
           (\str -> windows (W.view str) >> warpToMidWindow))
-    , ((Config.modm, xK_F1), manPrompt def)
+    , ((Config.modm, xK_F1), manPrompt Config.promptConfig)
     , ((Config.modm, xK_b), sendMessage ToggleStruts)
     , ((Config.modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
     , ((Config.modm, xK_c), toSubl NextLayout)
@@ -172,8 +172,9 @@ uploadSection =
 
 imageUploading :: [(String, X ())]
 imageUploading =
-  [ ("C-S-1", uploadCurrent)
-  , ("C-S-2", uploadSection)
+  [
+  --   ("C-S-1", uploadCurrent)
+  -- , ("C-S-2", uploadSection)
   -- , ("C-S-3", spawn "puush -a")
 
   -- , ("C-S-5", spawn "puush -d")
