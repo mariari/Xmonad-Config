@@ -2,6 +2,7 @@
 module Keys where
 
 import System.Exit
+import Data.Ratio
 
 import qualified XMonad.Actions.GroupNavigation as GroupNav
 import qualified XMonad.Layout.BoringWindows    as Boring
@@ -247,4 +248,4 @@ tryMsgR x y =
 toggleFloat :: Ord a => a -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 toggleFloat w s
   | Map.member w (W.floating s) = W.sink w s
-  | otherwise                   = W.float w (W.RationalRect (1/3) (1/4) (1/2) (4/5)) s
+  | otherwise                   = W.float w (W.RationalRect (1 % 4) (1 % 4) (1 % 2) (1 % 2)) s

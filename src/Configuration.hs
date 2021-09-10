@@ -110,8 +110,9 @@ unfocusColor = base02
 myFont, myBigFont, myWideFont :: String
 
 myFont      = "xft:WenQuanYi Micro Hei Mono:antialias=true:size=10"
+myBigFont   = "xft:WenQuanYi Micro Hei Mono:antialias=true:size=12"
 -- myFont      = "-*-terminus-medium-*-*-*-*-160-*-*-*-*-*-*"
-myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
+-- myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
 myWideFont  = "xft:Eurostar Black Extended:"
            <> "style=Regular:pixelsize=180:hinting=true"
 

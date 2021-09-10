@@ -56,16 +56,17 @@ workspaceLayouts
  --  $ PerWorkspace.onWorkspace Config.w10 myLayout'
   $ defaultLayouts
   where
-    _chatLayout    = myGaps Grid.Grid ||| defaultLayouts
-    _codeLayouts   = fixedLayout ||| tiledLayout ||| Mirror tiledLayout
-
     webLayouts     = Reflect.reflectHoriz flex   ||| defaultLayouts
 
-    defaultLayouts = flex               ||| threeCol |||
-                     tilePipeLine       ||| tabs     |||
-                     Mirror tilePipeLine
+    defaultLayouts = flex         ||| threeCol |||
+                     tilePipeLine ||| tabs     |||
+                     mirrorTile
 
-    tilePipeLine = defaultLayoutPipeline tiledLayout
+    tileGen f = defaultLayoutPipeline
+              $ standardSubLayout
+              $ f tiledLayout
+    tilePipeLine = tileGen id
+    mirrorTile   = tileGen Mirror
     _showWorkspaceName = WName.showWName' Config.myShowWNameTheme
 
 --------------------------------------------------------------------------------
@@ -89,8 +90,9 @@ tiledLayout = Resize.ResizableTall nmaster delta ratio []
 --   http://kitenet.net/~joey/blog/entry/xmonad_layouts_for_netbooks/
 
 flex =
-  defaultLayoutPipeline
-  $ SubLayout.subLayout [] (Simplest.Simplest ||| uniformGaps Accordion.Accordion)
+  named "Flex"
+  $ defaultLayoutPipeline
+  $ standardSubLayout
   $ PerScreen.ifWider Config.smallMonResWidth wideLayouts standardLayouts
      where
        wideLayouts = myGaps
@@ -105,11 +107,11 @@ flex =
          ||| suffixed "Std 1/2" (Resize.ResizableTall 1 (1/20) (1/2) [])
 
 threeCol = named "Unflexed"
-             $ addTopBar
-             $ Boring.boringAuto
-             $ myGaps
-             $ uniformGaps
-             $ ThreeColumn.ThreeColMid 1 (1/10) (1/2)
+         $ addTopBar
+         $ Boring.boringAuto
+         $ myGaps
+         $ uniformGaps
+         $ ThreeColumn.ThreeColMid 1 (1/10) (1/2)
 
 addTopBar = NoFrills.noFrillsDeco NoFrills.shrinkText Config.topBarTheme
 
@@ -129,6 +131,9 @@ twoDLayout
   $ tiledLayout ||| Full
 
 uniformGaps = uniformSpacing Config.gap
+
+standardSubLayout =
+  SubLayout.subLayout [] (Simplest.Simplest ||| uniformGaps Accordion.Accordion)
 
 defaultLayoutPipeline x = defaultPred Boring.boringAuto x
 
