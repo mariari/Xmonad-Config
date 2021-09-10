@@ -7,6 +7,8 @@ import qualified XMonad.Layout.Tabbed as Tabbed
 import qualified XMonad.Layout.ShowWName as ShowWName
 import qualified XMonad.Prompt as Prompt
 import qualified XMonad.Prompt.FuzzyMatch as Fuzzy
+import XMonad.Util.Themes as Themes
+import Data.List (subsequences)
 
 screenOrdering :: [XMonad.ScreenId]
 screenOrdering = [2,0,1]
@@ -80,7 +82,7 @@ gap :: Int
 gap = 5
 
 topbar :: XMonad.Dimension
-topbar = 5
+topbar = 20
 
 border :: Integer
 border = 0
@@ -107,7 +109,8 @@ unfocusColor = base02
 
 myFont, myBigFont, myWideFont :: String
 
-myFont      = "-*-terminus-medium-*-*-*-*-160-*-*-*-*-*-*"
+myFont      = "xft:WenQuanYi Micro Hei Mono:antialias=true:size=10"
+-- myFont      = "-*-terminus-medium-*-*-*-*-160-*-*-*-*-*-*"
 myBigFont   = "-*-terminus-medium-*-*-*-*-240-*-*-*-*-*-*"
 myWideFont  = "xft:Eurostar Black Extended:"
            <> "style=Regular:pixelsize=180:hinting=true"
@@ -121,30 +124,37 @@ themeHighlight = "#f07746"
 modm :: XMonad.KeyMask
 modm = XMonad.mod4Mask
 
+myTheme :: Themes.ThemeInfo
+myTheme =
+  Themes.TI
+    { themeName        = "TestTheme"
+    , themeAuthor      = "mariari"
+    , themeDescription = "My basic theme"
+    , theme =
+      (XMonad.def Tabbed.Theme)
+        { Tabbed.fontName              = myFont
+        -- Base Colors
+        , Tabbed.activeColor           = "#4c7899"
+        , Tabbed.inactiveColor         = "#333333"
+        -- Text
+        , Tabbed.inactiveTextColor     = "#888888"
+        , Tabbed.activeTextColor       = "#ffffff"
+        , Tabbed.urgentTextColor       = yellow
+        -- Border
+        , Tabbed.inactiveBorderColor   = "#285577"
+        , Tabbed.activeBorderColor     = "#285577"
+        , Tabbed.urgentBorderColor     = red
+        -- Dimensions
+        , Tabbed.decoHeight            = topbar
+        , Tabbed.decoWidth             = 200
+        }
+  }
+
 myTabTheme :: Tabbed.Theme
-myTabTheme = XMonad.def Tabbed.Theme
-    { fontName              = myFont
-    , activeColor           = active
-    , inactiveColor         = base02
-    , activeBorderColor     = active
-    , inactiveBorderColor   = base02
-    , activeTextColor       = base03
-    , inactiveTextColor     = base00
-    }
+myTabTheme = Themes.theme myTheme
 
 topBarTheme :: Tabbed.Theme
-topBarTheme = XMonad.def Tabbed.Theme
-    { fontName              = myFont
-    , inactiveBorderColor   = blue
-    , inactiveColor         = base03
-    , inactiveTextColor     = base03
-    , activeBorderColor     = active
-    , activeColor           = active
-    , activeTextColor       = active
-    , urgentBorderColor     = red
-    , urgentTextColor       = yellow
-    , decoHeight            = topbar
-    }
+topBarTheme = Themes.theme myTheme
 
 myShowWNameTheme :: ShowWName.SWNConfig
 myShowWNameTheme = ShowWName.SWNC

@@ -1,7 +1,7 @@
 Config {
---       font = "xft:Monospace:pixelsize=11",
---       font = "xft:Hack:size=10",
-       font = "pango:Love Letter Typewriter 9",
+       -- font = "xft:Monospace:pixelsize=12",
+       font = "xft:WenQuanYi Micro Hei Mono:antialias=true:size=10",
+       -- font = "pango:Love Letter Typewriter 9",
        commands = [
 --                Run Weather "KADS" ["-t"," <tempF>F","-L","64","-H","77","--normal","green","--high","red","--low","lightblue"] 36000,
                 Run Cpu ["-L","3","-H","50","--normal","green","--high","red"] 10,
