@@ -33,7 +33,7 @@ library
     , text
     , unix
     , xmonad
-    , xmonad-contrib
+    , xmonad-contrib >=0.17.0
   default-language: Haskell2010
 
 executable config
@@ -55,5 +55,5 @@ executable config
     , text
     , unix
     , xmonad
-    , xmonad-contrib
+    , xmonad-contrib >=0.17.0
   default-language: Haskell2010

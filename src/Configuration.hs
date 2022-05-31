@@ -11,7 +11,7 @@ import XMonad.Util.Themes as Themes
 import Data.List (subsequences)
 
 screenOrdering :: [XMonad.ScreenId]
-screenOrdering = [2,0,1]
+screenOrdering = [3,0,1,2]
 
 ws :: [String]
 ws = [ "一", "二", "三"

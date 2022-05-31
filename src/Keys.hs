@@ -76,10 +76,11 @@ stringMap =
      -- spawn "dmenu_run -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\""
      Prompt.Shell.shellPrompt Config.promptConfig
     )
+  , ("M-S-d", spawn "rofi -show window")
   , ("M-n", spawn "passmenu  -nb \"#101010\" -nf \"#999999\" -sb \"#191919\" -sf \"#ff6699\"")
   , ("M-S-q", kill)
   , ("M-S-C-;", io exitSuccess) -- quit xmonad
-  , ("M-t", withFocused (windows . toggleFloat))
+  , ("M-y", withFocused (windows . toggleFloat))
   ] <> myAddWorkspace Config.wsExtra
     <> myAddWorkspace (zip Config.myWorkspaces (fmap (: []) ['1'..'9']))
     <> monitorKeys
@@ -205,7 +206,7 @@ windowModification =
 ------------------------------------------------------------
 
 screenAssoc :: [(Char, ScreenId)]
-screenAssoc = zip "wer" Config.screenOrdering
+screenAssoc = zip "wert" Config.screenOrdering
 
 appplyOnWorkSpace :: (WorkspaceId -> WindowSet -> WindowSet) -> ScreenId -> X ()
 appplyOnWorkSpace f scr =

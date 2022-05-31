@@ -24,7 +24,7 @@ dependencies:
   - X11
   - base
   - xmonad
-  - xmonad-contrib
+  - xmonad-contrib >= 0.17.0
   - text
   - containers
   - unix

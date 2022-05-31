@@ -95,9 +95,9 @@ flex =
   $ standardSubLayout
   $ PerScreen.ifWider Config.smallMonResWidth wideLayouts standardLayouts
      where
-       wideLayouts = myGaps
+       wideLayouts = (myGaps
                    $ uniformGaps
-                   $ tiledLayout
+                   $ tiledLayout)
                  ||| suffixed "Wide 3Col" (ThreeColumn.ThreeColMid 1 (1/20) (1/2))
        standardLayouts =
          myGaps

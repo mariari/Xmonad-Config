@@ -60,7 +60,8 @@ myLogHook xmobarPipe = do
 
 
 myHandleEventHook :: Event -> X Monoid.All
-myHandleEventHook = ManageDocks.docksEventHook -- <> EWMH.fullscreenEventHook
+myHandleEventHook = ManageDocks.docksEventHook
+                 -- <> EWMH.fullscreenEventHook
                  <> handleEventHook def
 
 trayer :: String
@@ -108,10 +109,13 @@ main = do
         , startupHook = myStartupHook
         , normalBorderColor  = Config.blue
         , focusedBorderColor = Config.pink
+        , focusFollowsMouse  = True
         , handleEventHook    = myHandleEventHook
         } `EZ.additionalKeysP` Keys.stringMap
           `EZ.additionalKeys`  Keys.maskMap
+
   xmobarPipe <- Run.spawnPipe "xmobar ~/.xmonad/bar/xmobarrc"
   xmonad
+    $ EWMH.setEwmhActivateHook Urgency.doAskUrgent
     $ applyEwmh
     $ Nav2D.withNavigation2DConfig def (myConfig xmobarPipe)
