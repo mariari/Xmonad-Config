@@ -14,7 +14,8 @@ import qualified XMonad.Layout.MultiToggle      as MultiTog
 import qualified XMonad.Prompt.Shell            as Prompt.Shell
 import qualified XMonad.Prompt                  as Prompt
 import qualified XMonad.Prompt.Window           as Window
-import qualified XMonad.Actions.WorkspaceNames as WorkSpaceNames
+import qualified XMonad.Actions.WorkspaceNames  as WorkSpaceNames
+import qualified XMonad.Actions.FocusNth        as FocusNth
 import XMonad --hiding ((|||))
 import XMonad.Actions.GridSelect
 import XMonad.Hooks.ManageDocks
@@ -81,12 +82,11 @@ stringMap =
   , ("M-S-q", kill)
   , ("M-S-C-;", io exitSuccess) -- quit xmonad
   , ("M-y", withFocused (windows . toggleFloat))
-  ] <> myAddWorkspace Config.wsExtra
-    <> myAddWorkspace (zip Config.myWorkspaces (fmap (: []) ['1'..'9']))
+  ]
     <> monitorKeys
 --  <> zipM' "M-"   "Navigate screen" arrowKeys dirs screenGo True
     <> zipM' "M-"   "Navigate window" arrowKeys dirs windowGo True
-    <> zipM' "C-S-" "Move window"     arrowKeys dirs windowSwap True
+    -- <> zipM' "C-S-" "Move window"     arrowKeys dirs windowSwap True
     <> imageUploading
     <> extraSwapKeys
     <> audioKeys
@@ -96,10 +96,10 @@ stringMap =
 maskMap :: [((KeyMask, KeySym), X ())]
 maskMap
   = [ (prefixKey, prefixMap)
-    , ((Config.modm, xK_equal ),
-       WorkSpaceNames.workspaceNamePrompt
-          Config.promptConfig
-          (\str -> windows (W.view str) >> warpToMidWindow))
+    -- , ((Config.modm, xK_equal ),
+    --    WorkSpaceNames.workspaceNamePrompt
+    --       Config.promptConfig
+    --       (\str -> windows (W.view str) >> warpToMidWindow))
     , ((Config.modm, xK_F1), manPrompt Config.promptConfig)
     , ((Config.modm, xK_b), sendMessage ToggleStruts)
     , ((Config.modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
@@ -113,6 +113,7 @@ maskMap
     , ((Config.modm, xK_BackSpace), GroupNav.nextMatch GroupNav.History (return True) >> warpToMidWindow)
     ] <> mergingSubLayouts
       <> focusMaskMap
+      <> myAddWorkspace (zip Config.myWorkspaces ([xK_F1 .. xK_F12] <> [xK_p, xK_o, xK_i]))
 
 --------------------------------------------------------------------------------
 -- Named Key bindings
@@ -125,6 +126,8 @@ focusMaskMap =
   -- %! Swap the focused window with the previous window
   , ((Config.modm, xK_k), Boring.focusUp)
   ]
+  <> fmap (\(i,k) -> ((Config.modm, k), FocusNth.focusNth i))
+          (zip [0..] (xK_equal : [xK_1 .. xK_9] <> [xK_0]))
 
 -- Merge w/ sublayout
 mergingSubLayouts :: [((KeyMask, KeySym), X ())]
@@ -151,7 +154,7 @@ monitorKeys
 
 audioKeys :: [(String, X ())]
 audioKeys =
-  [ ("<XF86AudioPlay>", spawn "~/scripts/mpcPausePlay.sh")
+  [ ("<XF86AudioPlay>", spawn "mpc toggle")
   , ("<XF86AudioStop>", spawn "mpc rand")
   , ("<XF86AudioNext>", spawn "mpc next")
   , ("<XF86AudioPrev>", spawn "mpc prev")
@@ -212,11 +215,11 @@ appplyOnWorkSpace :: (WorkspaceId -> WindowSet -> WindowSet) -> ScreenId -> X ()
 appplyOnWorkSpace f scr =
   screenWorkspace scr >>= flip whenJust (windows . f)
 
-myAddWorkspace :: [(String, String)] -> [(String, X ())]
+myAddWorkspace :: [(String, KeySym)] -> [((KeyMask, KeySym), X ())]
 myAddWorkspace ws
-  =  fmap (\(w, k) -> ("M-"   <> k, windows (W.view w))) ws
-  <> fmap (\(w, k) -> ("M-S-" <> k, windows (W.shift w))) ws
-  <> fmap (\(w, k) -> ("M-C-" <> k, windows (W.greedyView w))) ws
+  =  fmap (\(w, k) -> ((Config.modm              ,   k), windows (W.view w))) ws
+  <> fmap (\(w, k) -> ((Config.modm .|. shiftMask,   k), windows (W.shift w))) ws
+  <> fmap (\(w, k) -> ((Config.modm .|. controlMask, k), windows (W.greedyView w))) ws
 
 
 -- This warps to the middle screen, changing the focus, so this is not ideal

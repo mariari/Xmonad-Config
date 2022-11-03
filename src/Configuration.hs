@@ -11,7 +11,7 @@ import XMonad.Util.Themes as Themes
 import Data.List (subsequences)
 
 screenOrdering :: [XMonad.ScreenId]
-screenOrdering = [3,0,1,2]
+screenOrdering = [2,0,1,3]
 
 ws :: [String]
 ws = [ "一", "二", "三"
@@ -19,7 +19,7 @@ ws = [ "一", "二", "三"
      , "七", "八", "九"
      , "十"  , "十一", "十二"
      , "十三", "十四", "十五"
-     ]
+     , "十六" ]
 
 wsExtra :: [(String, String)]
 wsExtra = [("十",   "0"), ("十一", "p"), ("十二", "o")

@@ -31,6 +31,7 @@ import qualified XMonad.Layout.BinarySpacePartition as BSP
 import qualified XMonad.Layout.Simplest             as Simplest
 import qualified XMonad.Layout.WindowNavigation     as WindowNavigation
 import qualified XMonad.Layout.TrackFloating        as Track
+import qualified XMonad.Layout.SimpleFloat          as SimpleFloat
 
 import qualified Configuration as Config
 import XMonad
@@ -60,7 +61,7 @@ workspaceLayouts
 
     defaultLayouts = flex         ||| threeCol |||
                      tilePipeLine ||| tabs     |||
-                     mirrorTile
+                     mirrorTile   ||| flex |||  SimpleFloat.simpleFloat
 
     tileGen f = defaultLayoutPipeline
               $ standardSubLayout
