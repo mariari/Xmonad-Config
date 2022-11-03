@@ -128,6 +128,8 @@ focusMaskMap =
   ]
   <> fmap (\(i,k) -> ((Config.modm, k), FocusNth.focusNth i))
           (zip [0..] (xK_equal : [xK_1 .. xK_9] <> [xK_0]))
+  <> fmap (\(i,k) -> ((Config.modm .|. shiftMask, k), FocusNth.swapNth i))
+          (zip [0..] (xK_equal : [xK_1 .. xK_9] <> [xK_0]))
 
 -- Merge w/ sublayout
 mergingSubLayouts :: [((KeyMask, KeySym), X ())]
