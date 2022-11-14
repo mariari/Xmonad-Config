@@ -119,6 +119,18 @@ maskMap
 -- Named Key bindings
 --------------------------------------------------------------------------------
 
+windowRange :: [(Int, KeySym)]
+windowRange = zip [1..] ([xK_1 .. xK_9] <> [xK_0])
+
+windowZero :: [(Int, KeySym)]
+windowZero = zip [0,0] [xK_grave, xK_equal]
+
+focusWindows ::
+  (Semigroup (f ((KeyMask, b), X ())), Functor f) => f (Int, b) -> f ((KeyMask, b), X ())
+focusWindows numbering =
+     fmap (\(i,k) -> ((Config.modm, k), FocusNth.focusNth i))              numbering
+  <> fmap (\(i,k) -> ((Config.modm .|. shiftMask, k), FocusNth.swapNth i)) numbering
+
 focusMaskMap :: [((KeyMask, KeySym), X ())]
 focusMaskMap =
   -- %! Swap the focused window with the next window
@@ -126,10 +138,7 @@ focusMaskMap =
   -- %! Swap the focused window with the previous window
   , ((Config.modm, xK_k), Boring.focusUp)
   ]
-  <> fmap (\(i,k) -> ((Config.modm, k), FocusNth.focusNth i))
-          (zip [0..] (xK_equal : [xK_1 .. xK_9] <> [xK_0]))
-  <> fmap (\(i,k) -> ((Config.modm .|. shiftMask, k), FocusNth.swapNth i))
-          (zip [0..] (xK_equal : [xK_1 .. xK_9] <> [xK_0]))
+  <> focusWindows windowRange <> focusWindows windowZero
 
 -- Merge w/ sublayout
 mergingSubLayouts :: [((KeyMask, KeySym), X ())]
