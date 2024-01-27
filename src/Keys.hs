@@ -170,8 +170,8 @@ audioKeys =
   , ("<XF86AudioNext>", spawn "mpc next")
   , ("<XF86AudioPrev>", spawn "mpc prev")
   , ("<XF86TouchPadToggle>"   , spawn "~/shellscript/toggletouchpad.sh")
-  , ("<XF86MonBrightnessUp>"  , spawn "xbacklight -steps 1 -time 0 -inc 5")
-  , ("<XF86MonBrightnessDown>", spawn "xbacklight -steps 1 -time 0 -dec 5")
+  , ("<XF86MonBrightnessUp>"  , spawn "brightnessctl s 5%+")
+  , ("<XF86MonBrightnessDown>", spawn "brightnessctl s 5%-")
 
   , ("<XF86AudioMute>"        , spawn "pactl set-sink-mute @DEFAULT_SINK@ toggle")
   , ("<XF86AudioLowerVolume>" , spawn "pactl set-sink-volume @DEFAULT_SINK@ '-5%'")
