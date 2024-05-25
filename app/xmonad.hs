@@ -80,7 +80,7 @@ myStartupHook = do -- setWMName "LG3D" -- Helps with certain Java apps, IRRC.
   Once.spawnOnce "guake"
   Once.spawnOnce "blueman-applet"
   Once.spawnOnce "nm-applet"
-  Once.spawnOnce "fcitx"
+  Once.spawnOnce "fcitx5"
   Once.spawnOnce "mpd"
   Once.spawnOnce "mate-volume-control-applet"
   Once.spawnOnce "dunst"
